@@ -1,5 +1,7 @@
 import express from 'express';
 import { AuthorService } from '../services/author.service.js';
+import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
+import { IsEmpty } from '../stringTests/IsEmpty.js';
 
 const authorServise = new AuthorService();
 export const authorEndpoint = express.Router();
@@ -21,10 +23,48 @@ authorEndpoint.get('/:id', (request, response) => {
 authorEndpoint.post('', (request, response) => {
     const name = request.body.name;
     const surname = request.body.surname;
-    if (!isNaN(name || surname)) {
-        response.sendStatus(203);
+
+    if (!IsOnlyWords(name) || !IsOnlyWords(surname)) {
+        response.sendStatus(400);
         return;
     }
+    if (IsEmpty(name) || IsEmpty(surname)) {
+        response.sendStatus(400);
+        return;
+    }
+
     authorServise.addNewAuthor(name, surname);
+    response.sendStatus(200);
+});
+
+authorEndpoint.put('/:id', (request, response) => {
+    const id = parseInt(request.params.id);
+    const name = request.body.name;
+    const surname = request.body.surname;
+
+    if (!IsOnlyWords(name) || !IsOnlyWords(surname)) {
+        response.sendStatus(400);
+        return;
+    }
+    if (IsEmpty(name) || IsEmpty(surname)) {
+        response.sendStatus(400);
+        return;
+    }
+    
+    const req = authorServise.updateAuthorInfoByID(id, name, surname);
+    if (!req) {
+        response.sendStatus(404);
+        return;
+    }
+    response.sendStatus(200);
+});
+
+authorEndpoint.delete('/:id', (request, response) => {
+    const id = parseInt(request.params.id);
+    const req = authorServise.deleteAuthorByID(id);
+    if (!req) {
+        response.sendStatus(404);
+        return;
+    }
     response.sendStatus(200);
 });

@@ -12,4 +12,20 @@ export class Author{
     getID(){
         return this.id;
     }
+
+    getName(){
+        return this.name;
+    }
+
+    getSurname(){
+        return this.surname;
+    }
+
+    setName(name){
+        this.name = name;
+    }
+
+    setSurname(surname){
+        this.surname = surname;
+    }
 }
