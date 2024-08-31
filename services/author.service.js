@@ -7,17 +7,14 @@ export class AuthorService {
         this.authors = new Set();
     }
 
-    addNewAuthor (name, surname) {
-        let thisID = AuthorService.ID;
-        const author = new Author(name, surname, thisID);
-        this.authors.add(author);
-        AuthorService.ID++;
+    hasByAuthotID(id){
+
     }
 
     getAuthors () {
-        const arr = []
+        const arr = [];
         this.authors.forEach(e => {
-            arr.push(e)
+            arr.push(e);
         });
         return [...arr];
     }
@@ -30,7 +27,30 @@ export class AuthorService {
         return author;
     }
 
+    addNewAuthor (name, surname) {
+        let thisID = AuthorService.ID;
+        const author = new Author(name, surname, thisID);
+        this.authors.add(author);
+        AuthorService.ID++;
+    }
+
+    updateAuthorInfoByID (id, name, surname) {
+        let author = null;
+        this.authors.forEach(e => {
+            if (e.getID() === id) author = e;
+        });
+        if (author === null) return false;
+        author.setName(name);
+        author.setSurname(surname);
+        return true;
+    }
+
     deleteAuthorByID (id) {
-        this.authors.delete(id);
+        let author = null;
+        this.authors.forEach(e => {
+            if (e.getID() === id) author = e;
+        });
+        if (author === null) return false;
+        return this.authors.delete(author);
     }
 }
