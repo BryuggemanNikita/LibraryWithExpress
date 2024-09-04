@@ -1,57 +1,65 @@
 import express from 'express';
 import { AuthorService } from '../services/author.service.js';
-import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
 import { IsEmpty } from '../stringTests/IsEmpty.js';
+import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
 
-const authorServise = new AuthorService();
+export const authorServise = new AuthorService();
 export const authorEndpoint = express.Router();
 
-authorEndpoint.get('', (request, response) => {
-    response.send(JSON.parse(JSON.stringify(authorServise.getAuthors())));
+authorEndpoint.get('/getAllAuthors', (request, response) => {
+    const authors = authorServise.getAuthors();
+    response.send(JSON.parse(JSON.stringify(authors)));
 });
 
-authorEndpoint.get('/:id', (request, response) => {
-    const id = parseInt(request.params.id);
-    let author = authorServise.getAuthorByID(id);
-    if (author === null) {
+authorEndpoint.get('/getByID/:id', (request, response) => {
+    const authorID = parseInt(request.params.id);
+    let author = authorServise.getAuthorByID(authorID);
+    if (!author) {
         response.sendStatus(404);
         return;
     }
     response.send(author);
 });
 
-authorEndpoint.post('', (request, response) => {
+authorEndpoint.post('/addAuthor', (request, response) => {
     const name = request.body.name;
     const surname = request.body.surname;
 
-    if (!IsOnlyWords(name) || !IsOnlyWords(surname)) {
+    if (!name || !surname) {
         response.sendStatus(400);
         return;
     }
-    if (IsEmpty(name) || IsEmpty(surname)) {
+    if (IsEmpty([name, surname])) {
+        response.sendStatus(400);
+        return;
+    }
+    if (!IsOnlyWords([name, surname])) {
         response.sendStatus(400);
         return;
     }
 
-    authorServise.addNewAuthor(name, surname);
+    if (!authorServise.addNewAuthor(name, surname)) {
+        response.sendStatus(400);
+        return;
+    }
     response.sendStatus(200);
 });
 
-authorEndpoint.put('/:id', (request, response) => {
-    const id = parseInt(request.params.id);
+authorEndpoint.put('/changeAuthorInfoByID/:id', (request, response) => {
+    const authorID = parseInt(request.params.id);
     const name = request.body.name;
     const surname = request.body.surname;
 
-    if (!IsOnlyWords(name) || !IsOnlyWords(surname)) {
+    if (!IsOnlyWords([name, surname])) {
         response.sendStatus(400);
         return;
     }
-    if (IsEmpty(name) || IsEmpty(surname)) {
+    if (IsEmpty([name, surname])) {
         response.sendStatus(400);
         return;
     }
-    
-    const req = authorServise.updateAuthorInfoByID(id, name, surname);
+
+    const req = authorServise.updateAuthorInfoByID(authorID, name, surname);
     if (!req) {
         response.sendStatus(404);
         return;
@@ -59,12 +67,20 @@ authorEndpoint.put('/:id', (request, response) => {
     response.sendStatus(200);
 });
 
-authorEndpoint.delete('/:id', (request, response) => {
-    const id = parseInt(request.params.id);
-    const req = authorServise.deleteAuthorByID(id);
+authorEndpoint.delete('/deleteAuthorByID/:id', (request, response) => {
+    const authorID = parseInt(request.params.id);
+    const req = authorServise.deleteAuthorByID(authorID);
     if (!req) {
         response.sendStatus(404);
         return;
     }
+    response.sendStatus(200);
+});
+
+authorEndpoint.get('/getArrayByFilter', (request, response) => {
+    const name = request.query.name;
+    const surname = request.query.surname;
+    console.log(IsEmpty(String(name)));
+    console.log(surname);
     response.sendStatus(200);
 });

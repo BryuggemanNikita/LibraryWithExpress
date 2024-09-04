@@ -1,4 +1,5 @@
-import { Author } from '../author/Author.js';
+import { Author } from '../classes/author/Author.js';
+import { libraryService } from '../endpoints/library.endpoint.js';
 
 export class AuthorService {
     static ID = 0;
@@ -7,8 +8,15 @@ export class AuthorService {
         this.authors = new Set();
     }
 
-    hasByAuthotID(id){
-
+    hasByFullname (name, surname) {
+        let flag = false;
+        this.authors.forEach(e => {
+            if (e.getName() == name && e.getSurname() == surname) {
+                flag = true;
+                return;
+            }
+        });
+        return flag;
     }
 
     getAuthors () {
@@ -16,41 +24,47 @@ export class AuthorService {
         this.authors.forEach(e => {
             arr.push(e);
         });
-        return [...arr];
+        return arr;
     }
 
     getAuthorByID (id) {
+        const authors = this.authors;
         let author = null;
-        this.authors.forEach(e => {
-            if (e.getID() === id) author = e;
-        });
-        return author;
+        try {
+            authors.forEach(e => {
+                if (e.getID() === id) {
+                    author = e;
+                    throw new Error();
+                }
+            });
+        } finally {
+            return author;
+        }
     }
 
     addNewAuthor (name, surname) {
+        if (this.hasByFullname(name, surname)) {
+            return false;
+        }
         let thisID = AuthorService.ID;
         const author = new Author(name, surname, thisID);
         this.authors.add(author);
+        libraryService.addNewAuthorInLibrary(thisID);
         AuthorService.ID++;
+        return true;
     }
 
-    updateAuthorInfoByID (id, name, surname) {
-        let author = null;
-        this.authors.forEach(e => {
-            if (e.getID() === id) author = e;
-        });
-        if (author === null) return false;
-        author.setName(name);
-        author.setSurname(surname);
+    updateAuthorInfoByID (id, newName, newSurname) {
+        const author = this.getAuthorByID(id);
+        if (!author) return false;
+        author.setName(newName);
+        author.setSurname(newSurname);
         return true;
     }
 
     deleteAuthorByID (id) {
-        let author = null;
-        this.authors.forEach(e => {
-            if (e.getID() === id) author = e;
-        });
-        if (author === null) return false;
+        const author = this.getAuthorByID(id);
+        if (!author) return false;
         return this.authors.delete(author);
     }
 }

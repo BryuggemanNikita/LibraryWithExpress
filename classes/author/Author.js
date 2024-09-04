@@ -21,11 +21,11 @@ export class Author{
         return this.surname;
     }
 
-    setName(name){
-        this.name = name;
+    setName(newName){
+        this.name = newName;
     }
 
-    setSurname(surname){
-        this.surname = surname;
+    setSurname(newSurname){
+        this.surname = newSurname;
     }
 }
