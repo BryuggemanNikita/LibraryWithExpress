@@ -18,6 +18,6 @@ app.get('/helth', (response, require) => {
     require.send(process.env.HELTH_STATUS);
 });
 
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT || 80, () => {
     console.log(`Server init in port ${process.env.PORT}`);
 });
