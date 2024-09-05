@@ -30,6 +30,16 @@ export class BookService {
         }
     }
 
+    getByBooksByRegExp (name) {
+        const books = this.books;
+        const reg = new RegExp(`(${name})`);
+        let resBooks = [];
+        books.forEach(e => {
+            if (reg.test(e.getName())) resBooks.push(e);
+        });
+        return resBooks;
+    }
+
     addNew (name, countPages, genre, authorID) {
         const book = new Book(
             name,

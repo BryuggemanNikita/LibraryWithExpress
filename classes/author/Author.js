@@ -1,31 +1,31 @@
-export class Author{
-    constructor(name, surname, id){
+export class Author {
+    constructor (name, surname, id) {
         this.name = name;
         this.surname = surname;
         this.id = id;
-    };
+    }
 
-    getFullName(){
-        return `${this.name} ${this.sername}`;
-    };
+    getFullName () {
+        return `${this.name} ${this.surname}`;
+    }
 
-    getID(){
+    getID () {
         return this.id;
     }
 
-    getName(){
+    getName () {
         return this.name;
     }
 
-    getSurname(){
+    getSurname () {
         return this.surname;
     }
 
-    setName(newName){
+    setName (newName) {
         this.name = newName;
     }
 
-    setSurname(newSurname){
+    setSurname (newSurname) {
         this.surname = newSurname;
     }
 }

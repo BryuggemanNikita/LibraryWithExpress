@@ -14,10 +14,6 @@ app.use('/books', bookEndpoint);
 app.use('/genres', genreEndpoint);
 app.use('/library', libraryEndoint);
 
-app.get('/helth', (response, require) => {
-    require.send(process.env.HELTH_STATUS);
-});
-
 app.listen(process.env.PORT || 80, () => {
     console.log(`Server init in port ${process.env.PORT}`);
 });

@@ -1,6 +1,6 @@
 import express from 'express';
 import { AuthorService } from '../services/author.service.js';
-import { IsEmpty } from '../stringTests/IsEmpty.js';
+import { IsEmptyStr } from '../stringTests/IsEmpty.js';
 import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
 
 export const authorServise = new AuthorService();
@@ -21,6 +21,18 @@ authorEndpoint.get('/getByID/:id', (request, response) => {
     response.send(author);
 });
 
+authorEndpoint.get('/getByReg', (request, response) => {
+    const payload = request.query;
+    const fullname = payload.Fullname;
+    const res = authorServise.getAuthorsByRegExp(fullname);
+
+    if (res.length == 0) {
+        response.sendStatus(404);
+        return;
+    }
+    response.send(JSON.parse(JSON.stringify(res)));
+});
+
 authorEndpoint.post('/addAuthor', (request, response) => {
     const name = request.body.name;
     const surname = request.body.surname;
@@ -29,7 +41,7 @@ authorEndpoint.post('/addAuthor', (request, response) => {
         response.sendStatus(400);
         return;
     }
-    if (IsEmpty([name, surname])) {
+    if (IsEmptyStr([name, surname])) {
         response.sendStatus(400);
         return;
     }
@@ -54,7 +66,7 @@ authorEndpoint.put('/changeAuthorInfoByID/:id', (request, response) => {
         response.sendStatus(400);
         return;
     }
-    if (IsEmpty([name, surname])) {
+    if (IsEmptyStr([name, surname])) {
         response.sendStatus(400);
         return;
     }
@@ -80,7 +92,7 @@ authorEndpoint.delete('/deleteAuthorByID/:id', (request, response) => {
 authorEndpoint.get('/getArrayByFilter', (request, response) => {
     const name = request.query.name;
     const surname = request.query.surname;
-    console.log(IsEmpty(String(name)));
+    console.log(IsEmptyStr(String(name)));
     console.log(surname);
     response.sendStatus(200);
 });

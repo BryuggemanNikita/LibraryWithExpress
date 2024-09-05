@@ -7,7 +7,7 @@ export class Book {
         this.id = id;
     }
 
-    getNAme () {
+    getName () {
         return this.name;
     }
 
@@ -15,7 +15,7 @@ export class Book {
         return this.countPages;
     }
 
-    getGenre(){
+    getGenre () {
         return this.genre;
     }
 
@@ -23,19 +23,19 @@ export class Book {
         return this.authorID;
     }
 
-    getID(){
+    getID () {
         return this.id;
     }
 
-    setName(newName){
+    setName (newName) {
         this.name = newName;
     }
 
-    setCountPages(newCountPages){
+    setCountPages (newCountPages) {
         this.countPages = newCountPages;
     }
 
-    setGenre(newGenre){
+    setGenre (newGenre) {
         this.genre = newGenre;
     }
 }

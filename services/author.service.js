@@ -19,6 +19,18 @@ export class AuthorService {
         return flag;
     }
 
+    getAuthorsByRegExp (fullname) {
+        const authors = this.authors;
+        let resAuthors = [];
+        const reg = new RegExp(`(${fullname})`);
+
+        authors.forEach(e => {
+            if (reg.test(e.getFullName())) resAuthors.push(e);
+        });
+
+        return resAuthors;
+    }
+
     getAuthors () {
         const arr = [];
         this.authors.forEach(e => {
@@ -57,6 +69,7 @@ export class AuthorService {
     updateAuthorInfoByID (id, newName, newSurname) {
         const author = this.getAuthorByID(id);
         if (!author) return false;
+        if(this.hasByFullname(newName, newSurname)) return false;
         author.setName(newName);
         author.setSurname(newSurname);
         return true;

@@ -1,6 +1,6 @@
 import express from 'express';
 import { BookService } from '../services/books.service.js';
-import { IsEmpty } from '../stringTests/IsEmpty.js';
+import { IsEmptyStr } from '../stringTests/IsEmpty.js';
 import { Genres } from '../enums/genres.enum.js';
 import { libraryService } from './library.endpoint.js';
 
@@ -22,14 +22,24 @@ bookEndpoint.get('/getByID/:id', (request, response) => {
     response.send(book);
 });
 
+bookEndpoint.get('/getByReg', (request, response) => {
+    const payLoad = request.query;
+    const name = payLoad.name;
+
+    const res = bookService.getByBooksByRegExp(name);
+
+    if (res.length == 0) {
+        response.sendStatus(404);
+        return;
+    }
+    response.send(JSON.parse(JSON.stringify(res)));
+});
+
 bookEndpoint.post('/addBook', (request, response) => {
     const name = request.body.name;
     const genre = Genres[parseInt(request.body.genre)];
     const countPages = parseInt(request.body.countPages);
     const authorID = parseInt(request.body.authorID);
-
-    console.log(isNaN(authorID));
-    console.log(typeof authorID);
 
     if (
         countPages < 0 ||
@@ -37,8 +47,7 @@ bookEndpoint.post('/addBook', (request, response) => {
         isNaN(authorID) ||
         !name ||
         !genre ||
-        !countPages ||
-        IsEmpty([String(name), String(countPages)])
+        IsEmptyStr([String(name), String(countPages)])
     ) {
         response.sendStatus(400);
         return;
@@ -59,10 +68,12 @@ bookEndpoint.put('/changeBookInfoByID/:id', (request, response) => {
     let newName = payload.name;
     let newCountPages = payload.countPages;
     let newGenre = Genres[payload.genre];
-    newName = IsEmpty(String(newName)) ? null : newName;
-    newGenre = IsEmpty(String(newGenre) || isNaN(newGenre)) ? null : newGenre;
+    newName = IsEmptyStr(String(newName)) ? null : newName;
+    newGenre = IsEmptyStr(String(newGenre) || isNaN(newGenre))
+        ? null
+        : newGenre;
     newCountPages =
-        newCountPages < 0 || IsEmpty(String(newCountPages))
+        newCountPages < 0 || IsEmptyStr(String(newCountPages))
             ? null
             : parseInt(newCountPages);
 
@@ -82,11 +93,5 @@ bookEndpoint.put('/changeBookInfoByID/:id', (request, response) => {
 bookEndpoint.delete('/deleteBookByID/:id', (request, response) => {
     const bookID = parseInt(request.params.id);
     bookService.deleteByID(bookID);
-    response.sendStatus(200);
-});
-
-bookEndpoint.get('/filter', (request, response) => {
-    console.log(request.query);
-
     response.sendStatus(200);
 });

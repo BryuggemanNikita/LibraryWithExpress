@@ -1,8 +1,8 @@
-export function IsEmpty (str) {
+export function IsEmptyStr (str) {
     if (Array.isArray(str)) {
         let flag = false;
         str.forEach(e => {
-            if (IsEmpty(e)) flag = true;
+            if (IsEmptyStr(e)) flag = true;
         });
         return flag;
     }
