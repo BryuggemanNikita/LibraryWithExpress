@@ -72,8 +72,11 @@ export class BookService {
 
     deleteByID (bookID) {
         const books = this.books;
+        let book = null;
         books.forEach(e => {
-            if (e.getID() == bookID) this.books.delete(e);
+            if (e.getID() == bookID) book = e;
         });
+        this.books.delete(book);
+        return book;
     }
 }

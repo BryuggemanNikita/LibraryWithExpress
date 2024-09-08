@@ -1,5 +1,5 @@
 import express from 'express';
-import { LibraryService } from '../services/Library.service.js';
+import { LibraryService } from '../services/library.service.js';
 
 export const libraryService = new LibraryService();
 export const libraryEndoint = express.Router();

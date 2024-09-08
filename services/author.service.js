@@ -9,12 +9,22 @@ export class AuthorService {
     }
 
     hasByFullname (name, surname) {
+        const authors = this.authors;
         let flag = false;
-        this.authors.forEach(e => {
+        authors.forEach(e => {
             if (e.getName() == name && e.getSurname() == surname) {
                 flag = true;
                 return;
             }
+        });
+        return flag;
+    }
+
+    hasByAuthorID (authorID) {
+        const authors = this.authors;
+        let flag = false;
+        authors.forEach(e => {
+            if (e.getID() == authorID) flag = true;
         });
         return flag;
     }
@@ -69,7 +79,7 @@ export class AuthorService {
     updateAuthorInfoByID (id, newName, newSurname) {
         const author = this.getAuthorByID(id);
         if (!author) return false;
-        if(this.hasByFullname(newName, newSurname)) return false;
+        if (this.hasByFullname(newName, newSurname)) return false;
         author.setName(newName);
         author.setSurname(newSurname);
         return true;

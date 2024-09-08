@@ -1,19 +1,21 @@
 import express from 'express';
 import { AuthorService } from '../services/author.service.js';
+import { libraryService } from './library.endpoint.js';
+import { bookService } from './book.endpoint.js';
 import { IsEmptyStr } from '../stringTests/IsEmpty.js';
 import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
 
-export const authorServise = new AuthorService();
+export const authorService = new AuthorService();
 export const authorEndpoint = express.Router();
 
 authorEndpoint.get('/getAllAuthors', (request, response) => {
-    const authors = authorServise.getAuthors();
+    const authors = authorService.getAuthors();
     response.send(JSON.parse(JSON.stringify(authors)));
 });
 
 authorEndpoint.get('/getByID/:id', (request, response) => {
     const authorID = parseInt(request.params.id);
-    let author = authorServise.getAuthorByID(authorID);
+    let author = authorService.getAuthorByID(authorID);
     if (!author) {
         response.sendStatus(404);
         return;
@@ -24,7 +26,7 @@ authorEndpoint.get('/getByID/:id', (request, response) => {
 authorEndpoint.get('/getByReg', (request, response) => {
     const payload = request.query;
     const fullname = payload.Fullname;
-    const res = authorServise.getAuthorsByRegExp(fullname);
+    const res = authorService.getAuthorsByRegExp(fullname);
 
     if (res.length == 0) {
         response.sendStatus(404);
@@ -50,7 +52,7 @@ authorEndpoint.post('/addAuthor', (request, response) => {
         return;
     }
 
-    if (!authorServise.addNewAuthor(name, surname)) {
+    if (!authorService.addNewAuthor(name, surname)) {
         response.sendStatus(400);
         return;
     }
@@ -62,6 +64,14 @@ authorEndpoint.put('/changeAuthorInfoByID/:id', (request, response) => {
     const name = request.body.name;
     const surname = request.body.surname;
 
+    if (!authorService.hasByAuthorID(authorID)) {
+        response.sendStatus(404);
+        return;
+    }
+    if (!name || !surname) {
+        response.sendStatus(404);
+        return;
+    }
     if (!IsOnlyWords([name, surname])) {
         response.sendStatus(400);
         return;
@@ -71,7 +81,7 @@ authorEndpoint.put('/changeAuthorInfoByID/:id', (request, response) => {
         return;
     }
 
-    const req = authorServise.updateAuthorInfoByID(authorID, name, surname);
+    const req = authorService.updateAuthorInfoByID(authorID, name, surname);
     if (!req) {
         response.sendStatus(404);
         return;
@@ -81,11 +91,16 @@ authorEndpoint.put('/changeAuthorInfoByID/:id', (request, response) => {
 
 authorEndpoint.delete('/deleteAuthorByID/:id', (request, response) => {
     const authorID = parseInt(request.params.id);
-    const req = authorServise.deleteAuthorByID(authorID);
+    const req = authorService.deleteAuthorByID(authorID);
+
     if (!req) {
         response.sendStatus(404);
         return;
     }
+
+    const bookIDs = libraryService.deleteAuthorLibrary(authorID);
+    bookIDs.forEach(e => bookService.deleteByID(e));
+
     response.sendStatus(200);
 });
 
