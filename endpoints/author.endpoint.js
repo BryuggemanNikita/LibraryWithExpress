@@ -52,7 +52,8 @@ authorEndpoint.post('/addAuthor', (request, response) => {
         return;
     }
 
-    if (!authorService.addNewAuthor(name, surname)) {
+    const flag = authorService.addNewAuthor(name, surname); 
+    if (!flag) {
         response.sendStatus(400);
         return;
     }

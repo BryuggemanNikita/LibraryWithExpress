@@ -1,9 +1,9 @@
 import express from 'express';
 import { BookService } from '../services/books.service.js';
 import { authorService } from './author.endpoint.js';
+import { libraryService } from './library.endpoint.js';
 import { IsEmptyStr } from '../stringTests/IsEmpty.js';
 import { Genres } from '../enums/genres.enum.js';
-import { libraryService } from './library.endpoint.js';
 
 export const bookService = new BookService();
 export const bookEndpoint = express.Router();
