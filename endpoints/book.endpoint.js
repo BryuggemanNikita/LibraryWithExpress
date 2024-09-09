@@ -8,14 +8,14 @@ import { Genres } from '../enums/genres.enum.js';
 export const bookService = new BookService();
 export const bookEndpoint = express.Router();
 
-bookEndpoint.get('/getAllBooks', (request, response) => {
-    const books = bookService.getAll();
+bookEndpoint.get('/getAllBooks', async (request, response) => {
+    const books = await bookService.getAll();
     response.send(JSON.parse(JSON.stringify(books)));
 });
 
-bookEndpoint.get('/getByID/:id', (request, response) => {
+bookEndpoint.get('/getByID/:id', async (request, response) => {
     const bookID = parseInt(request.params.id);
-    const book = bookService.getByID(bookID);
+    const book = await bookService.getByID(bookID);
     if (!book) {
         response.sendStatus(404);
         return;
@@ -23,11 +23,11 @@ bookEndpoint.get('/getByID/:id', (request, response) => {
     response.send(book);
 });
 
-bookEndpoint.get('/getByReg', (request, response) => {
+bookEndpoint.get('/getByReg', async (request, response) => {
     const payLoad = request.query;
     const name = payLoad.name;
 
-    const res = bookService.getByBooksByRegExp(name);
+    const res = await bookService.getByBooksByRegExp(name);
 
     if (res.length == 0) {
         response.sendStatus(404);
@@ -36,7 +36,7 @@ bookEndpoint.get('/getByReg', (request, response) => {
     response.send(JSON.parse(JSON.stringify(res)));
 });
 
-bookEndpoint.post('/addBook', (request, response) => {
+bookEndpoint.post('/addBook', async (request, response) => {
     const name = request.body.name;
     const genre = Genres[parseInt(request.body.genre)];
     const countPages = parseInt(request.body.countPages);
@@ -50,7 +50,8 @@ bookEndpoint.post('/addBook', (request, response) => {
         response.sendStatus(400);
         return;
     }
-    if (!authorService.hasByAuthorID(authorID)) {
+    const isHas = await authorService.hasByAuthorID(authorID);
+    if (!isHas) {
         response.sendStatus(404);
         return;
     }
@@ -63,12 +64,12 @@ bookEndpoint.post('/addBook', (request, response) => {
         return;
     }
 
-    const book = bookService.addNew(name, countPages, genre, authorID);
-    libraryService.addBook(book, authorID);
+    const book = await bookService.addNew(name, countPages, genre, authorID);
+    await libraryService.addBook(book, authorID);
     response.sendStatus(200);
 });
 
-bookEndpoint.put('/changeBookInfoByID/:id', (request, response) => {
+bookEndpoint.put('/changeBookInfoByID/:id', async (request, response) => {
     const bookID = parseInt(request.params.id);
     const payload = request.query;
     let newName = payload.name;
@@ -84,7 +85,7 @@ bookEndpoint.put('/changeBookInfoByID/:id', (request, response) => {
             ? null
             : parseInt(newCountPages);
 
-    const flag = bookService.updateBookInfoByID(
+    const flag = await bookService.updateBookInfoByID(
         bookID,
         newName,
         newCountPages,
@@ -97,14 +98,14 @@ bookEndpoint.put('/changeBookInfoByID/:id', (request, response) => {
     response.sendStatus(200);
 });
 
-bookEndpoint.delete('/deleteBookByID/:id', (request, response) => {
+bookEndpoint.delete('/deleteBookByID/:id', async (request, response) => {
     const bookID = parseInt(request.params.id);
-    const book = bookService.deleteByID(bookID);
+    const book = await bookService.deleteByID(bookID);
     if (!book) {
         response.sendStatus(404);
         return;
     }
     const authorID = book.getAuthorID();
-    libraryService.deleteBy2ID(authorID, bookID);
+    await libraryService.deleteBy2ID(authorID, bookID);
     response.sendStatus(200);
 });
