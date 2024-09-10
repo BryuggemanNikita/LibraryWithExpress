@@ -10,7 +10,7 @@ export const authorEndpoint = express.Router();
 
 authorEndpoint.get('/getAllAuthors', (request, response) => {
     const authors = authorService.getAuthors();
-    response.send(JSON.parse(JSON.stringify(authors)));
+    response.send(authors);
 });
 
 authorEndpoint.get('/getByID/:id', (request, response) => {
@@ -29,10 +29,11 @@ authorEndpoint.get('/getByReg', (request, response) => {
     const res = authorService.getAuthorsByRegExp(fullname);
 
     if (res.length == 0) {
-        response.sendStatus(404);
+        response.status(404).send(res);
         return;
     }
-    response.send(JSON.parse(JSON.stringify(res)));
+
+    response.send(res);
 });
 
 authorEndpoint.post('/addAuthor', (request, response) => {

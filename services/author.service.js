@@ -32,10 +32,10 @@ export class AuthorService {
     getAuthorsByRegExp (fullname) {
         const authors = this.authors;
         let resAuthors = [];
-        const reg = new RegExp(`(${fullname})`);
+        // const reg = new RegExp(`(${fullname})`);
 
         authors.forEach(e => {
-            if (reg.test(e.getFullName())) resAuthors.push(e);
+            if (e.getFullName().includes(fullname)) resAuthors.push(e);
         });
 
         return resAuthors;
