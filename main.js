@@ -14,6 +14,6 @@ app.use('/books', bookEndpoint);
 app.use('/genres', genreEndpoint);
 app.use('/library', libraryEndoint);
 
-app.listen(process.env.PORT || 80, () => {
+app.listen(process.env.PORT, () => {
     console.log(`Server init in port ${process.env.PORT}`);
 });
