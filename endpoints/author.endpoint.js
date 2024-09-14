@@ -8,14 +8,19 @@ import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
 export const authorService = new AuthorService();
 export const authorEndpoint = express.Router();
 
-authorEndpoint.get('/getAllAuthors', (request, response) => {
-    const authors = authorService.getAuthors();
+authorEndpoint.get('/getAllAuthors', async (request, response) => {
+    const authors = await authorService.getAuthors();
+    const len = authors.length;
+    if (!len) {
+        response.status(404).send(authors);
+        return;
+    }
     response.send(authors);
 });
 
-authorEndpoint.get('/getByID/:id', (request, response) => {
+authorEndpoint.get('/getByID/:id', async (request, response) => {
     const authorID = parseInt(request.params.id);
-    let author = authorService.getAuthorByID(authorID);
+    let author = await authorService.getAuthorByID(authorID);
     if (!author) {
         response.sendStatus(404);
         return;
@@ -23,20 +28,22 @@ authorEndpoint.get('/getByID/:id', (request, response) => {
     response.send(author);
 });
 
-authorEndpoint.get('/getByReg', (request, response) => {
+authorEndpoint.get('/getByReg', async (request, response) => {
     const payload = request.query;
     const fullname = payload.Fullname;
-    const res = authorService.getAuthorsByRegExp(fullname);
-
-    if (res.length == 0) {
+    if (IsEmptyStr(fullname)) {
+        response.sendStatus(400);
+        return;
+    }
+    const res = await authorService.getAuthorsByRegExp(fullname);
+    if (!res) {
         response.status(404).send(res);
         return;
     }
-
     response.send(res);
 });
 
-authorEndpoint.post('/addAuthor', (request, response) => {
+authorEndpoint.post('/addAuthor', async (request, response) => {
     const name = request.body.name;
     const surname = request.body.surname;
 
@@ -53,7 +60,7 @@ authorEndpoint.post('/addAuthor', (request, response) => {
         return;
     }
 
-    const flag = authorService.addNewAuthor(name, surname); 
+    const flag = await authorService.addNewAuthor(name, surname);
     if (!flag) {
         response.sendStatus(400);
         return;
@@ -61,12 +68,13 @@ authorEndpoint.post('/addAuthor', (request, response) => {
     response.sendStatus(200);
 });
 
-authorEndpoint.put('/changeAuthorInfoByID/:id', (request, response) => {
+authorEndpoint.put('/changeAuthorInfoByID/:id', async (request, response) => {
     const authorID = parseInt(request.params.id);
     const name = request.body.name;
     const surname = request.body.surname;
 
-    if (!authorService.hasByAuthorID(authorID)) {
+    const isHas = await authorService.hasByAuthorID(authorID);
+    if (!isHas) {
         response.sendStatus(404);
         return;
     }
@@ -83,7 +91,11 @@ authorEndpoint.put('/changeAuthorInfoByID/:id', (request, response) => {
         return;
     }
 
-    const req = authorService.updateAuthorInfoByID(authorID, name, surname);
+    const req = await authorService.updateAuthorInfoByID(
+        authorID,
+        name,
+        surname
+    );
     if (!req) {
         response.sendStatus(404);
         return;
@@ -91,17 +103,17 @@ authorEndpoint.put('/changeAuthorInfoByID/:id', (request, response) => {
     response.sendStatus(200);
 });
 
-authorEndpoint.delete('/deleteAuthorByID/:id', (request, response) => {
+authorEndpoint.delete('/deleteAuthorByID/:id', async (request, response) => {
     const authorID = parseInt(request.params.id);
-    const req = authorService.deleteAuthorByID(authorID);
+    const req = await authorService.deleteAuthorByID(authorID);
 
     if (!req) {
         response.sendStatus(404);
         return;
     }
 
-    const bookIDs = libraryService.deleteAuthorLibrary(authorID);
-    bookIDs.forEach(e => bookService.deleteByID(e));
+    const bookIDs = await libraryService.deleteAuthorLibrary(authorID);
+    bookIDs.forEach(async e => await bookService.deleteByID(e));
 
     response.sendStatus(200);
 });

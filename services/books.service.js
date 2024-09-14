@@ -7,7 +7,7 @@ export class BookService {
         this.books = new Set();
     }
 
-    getAll () {
+    async getAll () {
         const arr = [];
         this.books.forEach(e => {
             arr.push(e);
@@ -15,7 +15,7 @@ export class BookService {
         return arr;
     }
 
-    getByID (bookID) {
+    async getByID (bookID) {
         const books = this.books;
         let book = null;
         try {
@@ -30,17 +30,17 @@ export class BookService {
         }
     }
 
-    getByBooksByRegExp (name) {
+    async getByBooksByRegExp (name) {
         const books = this.books;
-        const reg = new RegExp(`(${name})`);
         let resBooks = [];
         books.forEach(e => {
-            if (reg.test(e.getName())) resBooks.push(e);
+            const bookName = e.name;
+            if (bookName.includes(name)) resBooks.push(e);
         });
         return resBooks;
     }
 
-    addNew (name, countPages, genre, authorID) {
+    async addNew (name, countPages, genre, authorID) {
         const book = new Book(
             name,
             countPages,
@@ -53,8 +53,8 @@ export class BookService {
         return book;
     }
 
-    updateBookInfoByID (bookID, newName, newCountPages, newGenre) {
-        const book = this.getByID(bookID);
+    async updateBookInfoByID (bookID, newName, newCountPages, newGenre) {
+        const book = await this.getByID(bookID);
         if (!book) {
             return false;
         }
@@ -70,7 +70,7 @@ export class BookService {
         return true;
     }
 
-    deleteByID (bookID) {
+    async deleteByID (bookID) {
         const books = this.books;
         let book = null;
         books.forEach(e => {

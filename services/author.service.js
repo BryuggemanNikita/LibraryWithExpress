@@ -8,7 +8,7 @@ export class AuthorService {
         this.authors = new Set();
     }
 
-    hasByFullname (name, surname) {
+    async hasByFullname (name, surname) {
         const authors = this.authors;
         let flag = false;
         authors.forEach(e => {
@@ -20,7 +20,7 @@ export class AuthorService {
         return flag;
     }
 
-    hasByAuthorID (authorID) {
+    async hasByAuthorID (authorID) {
         const authors = this.authors;
         let flag = false;
         authors.forEach(e => {
@@ -29,11 +29,10 @@ export class AuthorService {
         return flag;
     }
 
-    getAuthorsByRegExp (fullname) {
+    async getAuthorsByRegExp (fullname) {
         const authors = this.authors;
         let resAuthors = [];
-        // const reg = new RegExp(`(${fullname})`);
-
+        
         authors.forEach(e => {
             if (e.getFullName().includes(fullname)) resAuthors.push(e);
         });
@@ -41,7 +40,7 @@ export class AuthorService {
         return resAuthors;
     }
 
-    getAuthors () {
+    async getAuthors () {
         const arr = [];
         this.authors.forEach(e => {
             arr.push(e);
@@ -49,7 +48,7 @@ export class AuthorService {
         return arr;
     }
 
-    getAuthorByID (id) {
+    async getAuthorByID (id) {
         const authors = this.authors;
         let author = null;
         try {
@@ -64,29 +63,31 @@ export class AuthorService {
         }
     }
 
-    addNewAuthor (name, surname) {
-        if (this.hasByFullname(name, surname)) {
+    async addNewAuthor (name, surname) {
+        const isDublic = await this.hasByFullname(name, surname);
+        if (isDublic) {
             return false;
         }
         let thisID = AuthorService.ID;
         const author = new Author(name, surname, thisID);
         this.authors.add(author);
-        libraryService.addNewAuthorInLibrary(thisID);
+        await libraryService.addNewAuthorInLibrary(thisID);
         AuthorService.ID++;
         return true;
     }
 
-    updateAuthorInfoByID (id, newName, newSurname) {
-        const author = this.getAuthorByID(id);
+    async updateAuthorInfoByID (id, newName, newSurname) {
+        const author = await this.getAuthorByID(id);
         if (!author) return false;
-        if (this.hasByFullname(newName, newSurname)) return false;
+        const isDublic = await this.hasByFullname(newName, newSurname);
+        if (isDublic) return false;
         author.setName(newName);
         author.setSurname(newSurname);
         return true;
     }
 
-    deleteAuthorByID (id) {
-        const author = this.getAuthorByID(id);
+    async deleteAuthorByID (id) {
+        const author = await this.getAuthorByID(id);
         if (!author) return false;
         return this.authors.delete(author);
     }
