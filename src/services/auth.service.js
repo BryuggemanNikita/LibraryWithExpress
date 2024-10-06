@@ -29,8 +29,6 @@ export class AuthService {
             role
         );
 
-        console.log(flag);
-
         if (!flag) {
             res.status(400).json({ message });
             return;
@@ -54,12 +52,9 @@ export class AuthService {
             user = await userService.getUserByName(username);
         }
 
-        if(!user){
-            return res.status(400).json({message:'Пользователь не найден'})
+        if (!user) {
+            return res.status(400).json({ message: 'Пользователь не найден' });
         }
-
-        console.log(user);
-        
 
         const hashUserPassword = user.getHashPassword();
 
@@ -75,14 +70,17 @@ export class AuthService {
 
         const userId = user.getId();
         const userRoles = user.getRoles();
-        const acessToken = await AuthService.#generateAcessToken(userId, userRoles);
-        res.status(200).json({acessToken})
+        const acessToken = await AuthService.#generateAcessToken(
+            userId,
+            userRoles
+        );
+        res.status(200).json({ acessToken });
     }
 
     static async #generateAcessToken (id, roles) {
         const payload = { id, roles };
         const secretWord = process.env.SECRET;
-        return jwt.sign(payload, secretWord, { expiresIn: '20m' })
+        return jwt.sign(payload, secretWord, { expiresIn: '20m' });
     }
 
     async getAllUsers (req, res) {
