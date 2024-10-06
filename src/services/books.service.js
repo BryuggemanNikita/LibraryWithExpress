@@ -1,4 +1,4 @@
-import { Book } from '../classes/book/Book.js';
+import { Book } from '../classes/Book.js';
 
 export class BookService {
     static ID = 0;

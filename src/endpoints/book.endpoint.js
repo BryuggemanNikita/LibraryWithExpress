@@ -4,6 +4,8 @@ import { authorService } from './author.endpoint.js';
 import { libraryService } from './library.endpoint.js';
 import { IsEmptyStr } from '../stringTests/IsEmpty.js';
 import { Genres } from '../enums/genres.enum.js';
+import { roleMiddleware } from '../middleware/auth.middleware.js';
+import { Role } from '../enums/role.enum.js';
 
 export const bookService = new BookService();
 export const bookEndpoint = express.Router();
@@ -44,7 +46,7 @@ bookEndpoint.get('/getByReg', async (request, response) => {
     response.send(res);
 });
 
-bookEndpoint.post('/addBook', async (request, response) => {
+bookEndpoint.post('/addBook', roleMiddleware([Role.ADMIN]),async (request, response) => {
     const name = request.body.name;
     const genre = Genres[parseInt(request.body.genre)];
     const countPages = parseInt(request.body.countPages);
@@ -77,7 +79,7 @@ bookEndpoint.post('/addBook', async (request, response) => {
     response.sendStatus(200);
 });
 
-bookEndpoint.put('/changeBookInfoByID/:id', async (request, response) => {
+bookEndpoint.put('/changeBookInfoByID/:id', roleMiddleware([Role.ADMIN, Role.AUTHOR]), async (request, response) => {
     const bookID = parseInt(request.params.id);
     const payload = request.query;
     let newName = payload.name;
@@ -106,7 +108,7 @@ bookEndpoint.put('/changeBookInfoByID/:id', async (request, response) => {
     response.sendStatus(200);
 });
 
-bookEndpoint.delete('/deleteBookByID/:id', async (request, response) => {
+bookEndpoint.delete('/deleteBookByID/:id', roleMiddleware([Role.ADMIN]), async (request, response) => {
     const bookID = parseInt(request.params.id);
     const book = await bookService.deleteByID(bookID);
     if (!book) {

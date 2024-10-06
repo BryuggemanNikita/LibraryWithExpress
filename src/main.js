@@ -1,6 +1,7 @@
 import express from 'express';
 import env from 'dotenv';
 import { authEndpoint } from './endpoints/auth.endpoint.js';
+import { userEndpoint } from './endpoints/user.endpoint.js';
 import { authorEndpoint } from './endpoints/author.endpoint.js';
 import { bookEndpoint } from './endpoints/book.endpoint.js';
 import { genreEndpoint } from './endpoints/genres.endpoint.js';
@@ -15,10 +16,10 @@ app.use((req, res, next) => {
     next();
 });
 
-// app.use('/users', userRouter);
+
 
 app.use('/auth', authEndpoint);
-
+app.use('/user', userEndpoint);
 app.use('/authors', authorEndpoint);
 app.use('/books', bookEndpoint);
 app.use('/genres', genreEndpoint);

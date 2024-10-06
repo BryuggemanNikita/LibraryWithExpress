@@ -43,85 +43,77 @@ authorEndpoint.get('/getByReg', async (request, response) => {
     response.send(res);
 });
 
-authorEndpoint.post('/addAuthor', async (request, response) => {
-    const name = request.body.name;
-    const surname = request.body.surname;
+// authorEndpoint.post('/addAuthor', async (request, response) => {
+//     const name = request.body.name;
+//     const surname = request.body.surname;
 
-    if (!name || !surname) {
-        response.sendStatus(400);
-        return;
-    }
-    if (IsEmptyStr([name, surname])) {
-        response.sendStatus(400);
-        return;
-    }
-    if (!IsOnlyWords([name, surname])) {
-        response.sendStatus(400);
-        return;
-    }
+//     if (!name || !surname) {
+//         response.sendStatus(400);
+//         return;
+//     }
+//     if (IsEmptyStr([name, surname])) {
+//         response.sendStatus(400);
+//         return;
+//     }
+//     if (!IsOnlyWords([name, surname])) {
+//         response.sendStatus(400);
+//         return;
+//     }
 
-    const flag = await authorService.addNewAuthor(name, surname);
-    if (!flag) {
-        response.sendStatus(400);
-        return;
-    }
-    response.sendStatus(200);
-});
+//     const flag = await authorService.addNewAuthor(name, surname);
+//     if (!flag) {
+//         response.sendStatus(400);
+//         return;
+//     }
+//     response.sendStatus(200);
+// });
 
-authorEndpoint.put('/changeAuthorInfoByID/:id', async (request, response) => {
-    const authorID = parseInt(request.params.id);
-    const name = request.body.name;
-    const surname = request.body.surname;
+// authorEndpoint.put('/changeAuthorInfoByID/:id', async (request, response) => {
+//     const authorID = parseInt(request.params.id);
+//     const name = request.body.name;
+//     const surname = request.body.surname;
 
-    const isHas = await authorService.hasByAuthorID(authorID);
-    if (!isHas) {
-        response.sendStatus(404);
-        return;
-    }
-    if (!name || !surname) {
-        response.sendStatus(404);
-        return;
-    }
-    if (!IsOnlyWords([name, surname])) {
-        response.sendStatus(400);
-        return;
-    }
-    if (IsEmptyStr([name, surname])) {
-        response.sendStatus(400);
-        return;
-    }
+//     const isHas = await authorService.hasByAuthorID(authorID);
+//     if (!isHas) {
+//         response.sendStatus(404);
+//         return;
+//     }
+//     if (!name || !surname) {
+//         response.sendStatus(404);
+//         return;
+//     }
+//     if (!IsOnlyWords([name, surname])) {
+//         response.sendStatus(400);
+//         return;
+//     }
+//     if (IsEmptyStr([name, surname])) {
+//         response.sendStatus(400);
+//         return;
+//     }
 
-    const req = await authorService.updateAuthorInfoByID(
-        authorID,
-        name,
-        surname
-    );
-    if (!req) {
-        response.sendStatus(404);
-        return;
-    }
-    response.sendStatus(200);
-});
+//     const req = await authorService.updateAuthorInfoByID(
+//         authorID,
+//         name,
+//         surname
+//     );
+//     if (!req) {
+//         response.sendStatus(404);
+//         return;
+//     }
+//     response.sendStatus(200);
+// });
 
-authorEndpoint.delete('/deleteAuthorByID/:id', async (request, response) => {
-    const authorID = parseInt(request.params.id);
-    const req = await authorService.deleteAuthorByID(authorID);
+// authorEndpoint.delete('/deleteAuthorByID/:id', async (request, response) => {
+//     const authorID = parseInt(request.params.id);
+//     const req = await authorService.deleteAuthorByID(authorID);
 
-    if (!req) {
-        response.sendStatus(404);
-        return;
-    }
+//     if (!req) {
+//         response.sendStatus(404);
+//         return;
+//     }
 
-    const bookIDs = await libraryService.deleteAuthorLibrary(authorID);
-    bookIDs.forEach(async e => await bookService.deleteByID(e));
+//     const bookIDs = await libraryService.deleteAuthorLibrary(authorID);
+//     bookIDs.forEach(async e => await bookService.deleteByID(e));
 
-    response.sendStatus(200);
-});
-
-authorEndpoint.get('/getArrayByFilter', (request, response) => {
-    const name = request.query.name;
-    const surname = request.query.surname;
-    console.log(IsEmptyStr(String(name)));
-    console.log(surname);
-    response.sendStatus(200);
-});
+//     response.sendStatus(200);
+// });

@@ -28,4 +28,8 @@ export class User{
     getId(){
         return this.#id;
     }
+
+    pushRole(role){
+        this.#roles.push(role);
+    }
 }

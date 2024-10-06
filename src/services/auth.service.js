@@ -6,7 +6,7 @@ import { validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 
 env.config();
-const userService = new UserService();
+export const userService = new UserService();
 
 export class AuthService {
     async registration (req, res) {
@@ -49,10 +49,17 @@ export class AuthService {
         const { username, email, password } = req.body;
         let user;
         if (!username) {
-            user = userService.getUserByEmail(email);
+            user = await userService.getUserByEmail(email);
         } else {
-            user = userService.getUserByName(username);
+            user = await userService.getUserByName(username);
         }
+
+        if(!user){
+            return res.status(400).json({message:'Пользователь не найден'})
+        }
+
+        console.log(user);
+        
 
         const hashUserPassword = user.getHashPassword();
 

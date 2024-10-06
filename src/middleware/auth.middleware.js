@@ -30,10 +30,10 @@ export const roleMiddleware = (roles) => {
             const user = req.user;
             const userRoles = user.roles;
             
-            let hasRole = true;
+            let hasRole = false;
 
             for(let role of roles){
-                if(!userRoles.includes(role)) hasRole = false;
+                if(userRoles.includes(role)) hasRole = true;
             }
 
             if(!hasRole){
@@ -44,3 +44,4 @@ export const roleMiddleware = (roles) => {
         })
     }    
 }
+

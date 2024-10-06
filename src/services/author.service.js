@@ -1,18 +1,11 @@
-import { Author } from '../classes/author/Author.js';
-import { libraryService } from '../endpoints/library.endpoint.js';
+import { userService } from './auth.service.js';
 
 export class AuthorService {
-    static ID = 0;
-
-    constructor () {
-        this.authors = new Set();
-    }
-
-    async hasByFullname (name, surname) {
-        const authors = this.authors;
+    async hasByFullname (name) {
+        const authors = await userService.getAuthors();
         let flag = false;
         authors.forEach(e => {
-            if (e.getName() == name && e.getSurname() == surname) {
+            if (e.name == name) {
                 flag = true;
                 return;
             }
@@ -20,40 +13,42 @@ export class AuthorService {
         return flag;
     }
 
+
     async hasByAuthorID (authorID) {
-        const authors = this.authors;
+        const authors = await userService.getAuthors();
         let flag = false;
         authors.forEach(e => {
-            if (e.getID() == authorID) flag = true;
+            if (e.id == authorID) flag = true;
         });
         return flag;
     }
 
     async getAuthorsByRegExp (fullname) {
-        const authors = this.authors;
+        const authors = await userService.getAuthors();
         let resAuthors = [];
         
         authors.forEach(e => {
-            if (e.getFullName().includes(fullname)) resAuthors.push(e);
+            if (e.name.includes(fullname)) resAuthors.push(e);
         });
 
         return resAuthors;
     }
 
     async getAuthors () {
+        const authors = await userService.getAuthors();
         const arr = [];
-        this.authors.forEach(e => {
+        authors.forEach(e => {
             arr.push(e);
         });
         return arr;
     }
 
     async getAuthorByID (id) {
-        const authors = this.authors;
+        const authors = await userService.getAuthors();
         let author = null;
         try {
             authors.forEach(e => {
-                if (e.getID() === id) {
+                if (e.id === id) {
                     author = e;
                     throw new Error();
                 }
@@ -63,32 +58,34 @@ export class AuthorService {
         }
     }
 
-    async addNewAuthor (name, surname) {
-        const isDublic = await this.hasByFullname(name, surname);
-        if (isDublic) {
-            return false;
-        }
-        let thisID = AuthorService.ID;
-        const author = new Author(name, surname, thisID);
-        this.authors.add(author);
-        await libraryService.addNewAuthorInLibrary(thisID);
-        AuthorService.ID++;
-        return true;
-    }
+    // async addNewAuthor (name, surname) {
+    //     const isDublic = await this.hasByFullname(name);
+    //     if (isDublic) {
+    //         return false;
+    //     }
+    //     let thisID = AuthorService.ID;
+    //     const author = new Author(name, surname, thisID);
+    //     const authors = await userService.getAuthors();
+    //     authors.add(author);
+    //     await libraryService.addNewAuthorInLibrary(thisID);
+    //     AuthorService.ID++;
+    //     return true;
+    // }
 
-    async updateAuthorInfoByID (id, newName, newSurname) {
-        const author = await this.getAuthorByID(id);
-        if (!author) return false;
-        const isDublic = await this.hasByFullname(newName, newSurname);
-        if (isDublic) return false;
-        author.setName(newName);
-        author.setSurname(newSurname);
-        return true;
-    }
+    // async updateAuthorInfoByID (id, newName, newSurname) {
+    //     const author = await this.getAuthorByID(id);
+    //     if (!author) return false;
+    //     const isDublic = await this.hasByFullname(newName, newSurname);
+    //     if (isDublic) return false;
+    //     author.setName(newName);
+    //     author.setSurname(newSurname);
+    //     return true;
+    // }
 
-    async deleteAuthorByID (id) {
-        const author = await this.getAuthorByID(id);
-        if (!author) return false;
-        return this.authors.delete(author);
-    }
+    // async deleteAuthorByID (id) {
+    //     const author = await this.getAuthorByID(id);
+    //     if (!author) return false;
+    //     const authors = await userService.getAuthors();
+    //     return authors.delete(author);
+    // }
 }
