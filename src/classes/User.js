@@ -1,11 +1,11 @@
-export class User{
+export class User {
     #name;
     #email;
     #hashPassword;
     #roles;
     #id;
-    
-    constructor(name, email, hashPassword, role, id){
+
+    constructor (name, email, hashPassword, role, id) {
         this.#name = name;
         this.#email = email;
         this.#hashPassword = hashPassword;
@@ -13,23 +13,32 @@ export class User{
         this.#id = id;
     }
 
-    getName(){
+    getPayload () {
+        return {
+            name: this.#name,
+            email: this.#email,
+            roles: this.#roles,
+            id: this.#id
+        };
+    }
+
+    getName () {
         return this.#name;
     }
-    getEmail(){
+    getEmail () {
         return this.#email;
     }
-    getHashPassword(){
+    getHashPassword () {
         return this.#hashPassword;
     }
-    getRoles(){
+    getRoles () {
         return this.#roles;
     }
-    getId(){
+    getId () {
         return this.#id;
     }
 
-    pushRole(role){
+    pushRole (role) {
         this.#roles.push(role);
     }
 }

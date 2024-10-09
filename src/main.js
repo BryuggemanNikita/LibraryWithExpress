@@ -10,13 +10,10 @@ import { libraryEndoint } from './endpoints/library.endpoint.js';
 const app = express();
 env.config();
 app.use(express.json());
-
 app.use((req, res, next) => {
     console.log(`request - ${req.method}, url - ${req.url}`);
     next();
 });
-
-
 
 app.use('/auth', authEndpoint);
 app.use('/user', userEndpoint);
@@ -28,33 +25,3 @@ app.use('/library', libraryEndoint);
 app.listen(process.env.PORT, () => {
     console.log(`Server init in port ${process.env.PORT}`);
 });
-
-// import bcrypt from 'bcrypt'
-
-// const password = '12340005';
-// const hashing = bcrypt.hashSync(password, 7);
-
-// // const user = {
-// //     name:'Nastya',
-// //     email:'nsty@gmail.com'
-// // }
-// // const token = jwt.sign(user, 'secret');
-// // console.log(jwt.verify(token, 'secret'));
-
-
-// const flag = bcrypt.compareSync(password, hashing)
-// console.log(flag);
-
-// import { User } from './classes/User.js';
-
-// const Role = {
-//     ADMIN:'ADMIN',
-//     USER:'USER'
-// }
-
-// const user = new User('Nastya', 'aboba@mail.ru', hashing, Role.ADMIN)
-
-// console.log(user.getName());
-// console.log(user.getEmail());
-// console.log(user.getPassword());
-// console.log(user.getRole());

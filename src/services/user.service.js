@@ -1,131 +1,65 @@
-import { User } from '../classes/User.js';
-import { libraryService } from '../endpoints/library.endpoint.js';
+import { authorsDB } from '../localDataBase/authors.db.js';
+import { libraryDB } from '../localDataBase/library.db.js';
+
 import { Role } from '../enums/role.enum.js';
-import bcrypt from 'bcrypt';
+import { usersFilter } from '../filtersForDataBases/usersFilter.js';
 
-export class UserService {
-    static ID = 0;
-    constructor () {
-        this.users = new Set();
+/**
+ * Сервер взаимодействия с user
+ * @method pushNewUserRole : {message}
+ */
+class UserService {
+    /**
+     * Метод реализующий добавление новой роли пользователю
+     * @returns ответ с результатом
+     */
+    async pushNewUserRole (req, res) {
+        const { userId, newRoleId } = req.body;
 
-        const adminHashPassword = bcrypt.hashSync('LibraryAdmin', 7);
-        const admin = new User(
-            'admin',
-            null,
-            adminHashPassword,
-            Role.ADMIN,
-            UserService.ID
-        );
-        UserService.ID++;
-        this.users.add(admin);
-    }
-
-    async pushNewUser (name, email, hashPassword, role) {
-        const user = new User(name, email, hashPassword, role, UserService.ID);
-        if (await this.hasDublicateEmail(email)) {
-            return {
-                message: 'Пользователь с такой почтой уже существует',
-                flag: false
-            };
+        // проверки на значения
+        if (isNaN(userId)) {
+            return res.status(400).json({ message: 'Неверно введен id' });
         }
-        if (await this.hasDublicateName(name)) {
-            return {
-                message: 'Пользователь с таким именем уже существует',
-                flag: false
-            };
+        if (isNaN(newRoleId)) {
+            return res.status(400).json({ message: 'Неверно введена роль' });
         }
-        this.users.add(user);
-        UserService.ID++;
-        return {
-            message: 'Пользователь успешно зарегистрирован',
-            flag: true
-        };
-    }
 
-    async hasDublicateEmail (email) {
-        for (let user of this.users) {
-            if (user.getEmail() === email) return true;
+        // поиск соответствующей роли                        Изменить
+        let newRole;
+        for (let key in Role) {
+            if (Role[key] == newRoleId) {
+                newRole = Role[key];
+            }
         }
-        return false;
-    }
-
-    async hasDublicateName (name) {
-        for (let user of this.users) {
-            if (user.getName() === name) return true;
+        if (newRole == undefined) {
+            return res.status(400).json({ message: 'роль не определена' });
         }
-        return false;
-    }
 
-    async getAllUsers () {
-        const users = [];
-
-        this.users.forEach(e => {
-            const user = {
-                name: e.getName(),
-                email: e.getEmail(),
-                roles: e.getRoles(),
-                id: e.getId()
-            };
-            users.push(user);
-        });
-        return users;
-    }
-
-    async changeUserRole (id, role) {
-        let user;
-
-        for (user of this.users) {
-            if (user.getId() == id) break;
-        }
+        // действия с пользователем
+        const user = await usersFilter.getById(userId);
         if (!user) {
-            return { message: 'Пользователь не найден', flag: false };
+            return res.status(400).json({ message: 'Пользователь не найден' });
         }
         const userRoles = user.getRoles();
-        if (userRoles.includes(role)) {
-            return {
-                message: 'Пользователь уже имеет данную роль',
-                flag: false
-            };
+        if (userRoles.includes(newRole)) {
+            return res.status(400).json({
+                message: 'Пользователь уже имеет данную роль'
+            });
         }
-        user.pushRole(role);
-        //Новый автор
-        if (role == Role.AUTHOR) {
-            libraryService.addNewAuthorInLibrary(user.getId());
-        }
-        return { message: 'Успешно', flag: true };
-    }
+        user.pushRole(newRole);
 
-    async getAuthors () {
-        let authors = new Set();
-        const authorRole = Role.AUTHOR;
-        for (let user of this.users) {
-            const userRoles = user.getRoles();
-            if (userRoles.includes(authorRole)) {
-                const authorPayload = {
-                    name: user.getName(),
-                    email: user.getEmail(),
-                    id: user.getId()
-                };
-                authors.add(authorPayload);
-            }
+        // Проверка на роль(автор) ---> создать нового автора в базу данных
+        if (newRole == Role.AUTHOR) {
+            await libraryDB.addNewAuthorInLibrary(user.getId());
+            authorsDB.addAuthor(user);
         }
-        return authors;
-    }
 
-    async getUserByEmail (email) {
-        let user;
-        for (user of this.users) {
-            if (user.getEmail() == email) {
-                return user;
-            }
-        }
-    }
-    async getUserByName (name) {
-        let user;
-        for (user of this.users) {
-            if (user.getName() == name) {
-                return user;
-            }
-        }
+        return res.status(200).json({ message: 'Успешно' });
     }
 }
+
+/**
+ * экземпляр класса
+ * @method pushNewUserRole : {message}
+ */
+export const userService = new UserService();
