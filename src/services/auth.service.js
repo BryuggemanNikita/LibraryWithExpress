@@ -3,8 +3,7 @@ import jwt from 'jsonwebtoken';
 import env from 'dotenv';
 import { validationResult } from 'express-validator';
 import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
-import { usersDB } from '../localDataBase/users.db.js';
-import { usersFilter } from '../filtersForDataBases/usersFilter.js';
+import { usersRepository } from '../repositories/usersRepository.js';
 
 env.config();
 
@@ -38,13 +37,13 @@ class AuthService {
         }
 
         // проверка на совпадения в бд
-        let user = await usersFilter.getByName(name);
+        let user = await usersRepository.getByName(name);
         if (user) {
             return res.status(400).json({
                 message: 'Пользователь с таким именем уже существует'
             });
         }
-        user = await usersFilter.getByEmail(email);
+        user = await usersRepository.getByEmail(email);
         if (user) {
             return res.status(400).json({
                 message: 'Пользователь с такой почтой уже существует'
@@ -53,7 +52,9 @@ class AuthService {
 
         const hashPassword = bcrypt.hashSync(password, 7);
 
-        user = await usersDB.addUser({ name, email, hashPassword });
+        user = await usersRepository.addUser({ name, email, hashPassword });
+
+        console.log(user);
 
         if (!user) {
             res.status(400).json({ message: 'Косяк' });
@@ -79,17 +80,16 @@ class AuthService {
 
         // Поиск пользователя по почте или имени
         if (!name) {
-            user = await usersFilter.getByEmail(email);
+            user = await usersRepository.getByEmail(email);
         } else {
-            user = await usersFilter.getByName(name);
+            user = await usersRepository.getByName(name);
         }
 
         if (!user) {
             return res.status(400).json({ message: 'Пользователь не найден' });
         }
 
-        const hashUserPassword = user.getHashPassword();
-
+        const hashUserPassword = user.password;
         const isTruePassword = bcrypt.compareSync(
             String(password),
             hashUserPassword
@@ -100,8 +100,8 @@ class AuthService {
         }
 
         // Генирация токена доступа
-        const userId = user.getId();
-        const userRoles = user.getRoles();
+        const userId = user._id;
+        const userRoles = user.roles;
         const accessToken = await AuthService.#generateAccessToken(
             userId,
             userRoles
@@ -125,7 +125,7 @@ class AuthService {
      * @returns ответ с пользователями
      */
     async getAllUsers (req, res) {
-        const users = await usersDB.getUsersPayload();
+        const users = await usersRepository.getUsers();
 
         if (!users.length) {
             res.status(404).json({ massge: 'Пользователей нет', users });

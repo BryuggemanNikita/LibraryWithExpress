@@ -1,5 +1,4 @@
-import { authorsDB } from '../localDataBase/authors.db.js';
-import { authorsFilter } from '../filtersForDataBases/authorsFilter.js';
+import { authorsRepository } from '../repositories/authorsRepository.js';
 import { validationResult } from 'express-validator';
 
 /**
@@ -14,9 +13,8 @@ class AuthorService {
      * @returns ответ {message, authors(payload)}
      */
     async getAllAuthors (req, res) {
-        const authors = await authorsDB.getAuthorsPayload();
-        const len = authors.length;
-        if (!len) {
+        const authors = await authorsRepository.getAuthors();
+        if (!authors.length) {
             return res
                 .status(404)
                 .json({ messgae: 'Авторы не найдены', authors });
@@ -35,12 +33,11 @@ class AuthorService {
         }
         const { id } = req.body;
 
-        let author = await authorsFilter.getByID(id);
+        let author = await authorsRepository.getByID(id);
         if (!author) {
             return res.status(404).json({ message: 'Автор не найден' });
         }
-        const authorPayload = author.getPayload();
-        return res.status(200).json({ message: 'Успешно', authorPayload });
+        return res.status(200).json({ message: 'Успешно', author });
     }
 
     /**
@@ -53,8 +50,10 @@ class AuthorService {
             return res.status(400).json({ message: 'Ошибка поиска', errors });
         }
         const { findName } = req.body;
-        const authors = await authorsFilter.getByRegExp(findName);
-        if (authors.length === 0) {
+        const authors = await authorsRepository.getByRegExp(findName);
+        console.log(authors);
+
+        if (!authors.length) {
             return res
                 .status(404)
                 .json({ message: 'Авторы не найдены', authors });

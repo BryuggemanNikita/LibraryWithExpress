@@ -1,8 +1,6 @@
-import { authorsDB } from '../localDataBase/authors.db.js';
-import { libraryDB } from '../localDataBase/library.db.js';
-
+import { usersRepository } from '../repositories/usersRepository.js';
 import { Role } from '../enums/role.enum.js';
-import { usersFilter } from '../filtersForDataBases/usersFilter.js';
+import { authorsRepository } from '../repositories/authorsRepository.js';
 
 /**
  * Сервер взаимодействия с user
@@ -17,9 +15,6 @@ class UserService {
         const { userId, newRoleId } = req.body;
 
         // проверки на значения
-        if (isNaN(userId)) {
-            return res.status(400).json({ message: 'Неверно введен id' });
-        }
         if (isNaN(newRoleId)) {
             return res.status(400).json({ message: 'Неверно введена роль' });
         }
@@ -36,23 +31,22 @@ class UserService {
         }
 
         // действия с пользователем
-        const user = await usersFilter.getById(userId);
+        const user = await usersRepository.getById(userId);
         if (!user) {
             return res.status(400).json({ message: 'Пользователь не найден' });
         }
-        const userRoles = user.getRoles();
+
+        const userRoles = user.roles;
+
         if (userRoles.includes(newRole)) {
             return res.status(400).json({
-                message: 'Пользователь уже имеет данную роль'
+                message: 'Пользователь уже имеет днную роль'
             });
         }
-        user.pushRole(newRole);
 
-        // Проверка на роль(автор) ---> создать нового автора в базу данных
-        if (newRole == Role.AUTHOR) {
-            await libraryDB.addNewAuthorInLibrary(user.getId());
-            authorsDB.addAuthor(user);
-        }
+        userRoles.push(newRole);
+        await usersRepository.updateUserInfoById(userId, { roles: userRoles });
+        if (newRole == Role.AUTHOR) authorsRepository.changeInAuthors();
 
         return res.status(200).json({ message: 'Успешно' });
     }

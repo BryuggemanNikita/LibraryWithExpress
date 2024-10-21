@@ -1,7 +1,7 @@
-import { booksDB } from '../localDataBase/books.db.js';
-import { libraryDB } from '../localDataBase/library.db.js';
-import { bookFilter } from '../filtersForDataBases/booksFilter.js';
-import { authorsFilter } from '../filtersForDataBases/authorsFilter.js';
+import { libraryRepository } from '../repositories/libraryRepository.js';
+import { booksRepository } from '../repositories/booksRepository.js';
+import { usersRepository } from '../repositories/usersRepository.js';
+import { Role } from '../enums/role.enum.js';
 import { validationResult } from 'express-validator';
 
 /**
@@ -18,7 +18,8 @@ class BookService {
      * @returns ответ {message, books(payload)}
      */
     async getAll (req, res) {
-        const books = await booksDB.getBooksPayload();
+        const books = await booksRepository.getBooks();
+
         const len = books.length;
         if (len == 0) {
             return res.status(404).json({ message: 'Книги отсутствуют' });
@@ -32,12 +33,11 @@ class BookService {
      */
     async getByID (req, res) {
         const { bookId } = req.body;
-        const book = await bookFilter.getById(bookId);
-        if (!book) {
+        const book = await booksRepository.getById(bookId);
+        if (!book.length) {
             return res.status(404).json({ message: 'Книга не найдена' });
         }
-        const bookPayload = book.getPayload();
-        return res.status(200).json({ message: 'Успешно', bookPayload });
+        return res.status(200).json({ message: 'Успешно', book });
     }
 
     /**
@@ -54,10 +54,8 @@ class BookService {
         }
 
         const { findName } = req.body;
-
-        const books = await bookFilter.getByRegExp(findName);
-        const len = books.length;
-        if (len === 0) {
+        const books = await booksRepository.getByRegExp(findName);
+        if (!books.length) {
             return res
                 .status(404)
                 .json({ message: 'Книг по запросу не найдено', books });
@@ -80,23 +78,31 @@ class BookService {
         const { name, countPages, genre, authorId } = req.body;
 
         // проверка на наличие автора в системе
-        const author = await authorsFilter.getByID(authorId);
-        if (!author) {
+        const user = await usersRepository.getById(authorId);
+
+        if (!user) {
+            return res
+                .status(400)
+                .json({ message: 'Пользователя нет в системе' });
+        }
+        if (!user.roles.includes(Role.AUTHOR)) {
             return res.status(400).json({
-                message: 'Автора с данным id нет в системе'
+                message: 'Пользователь не является автором'
             });
         }
 
-        const payLoad = { name, countPages, genre, authorId };
-        const book = await booksDB.addBook(payLoad);
-        const flagResolut = await libraryDB.addBook(book, authorId);
+        const payLoad = { name, countPages, genre };
+        const book = await booksRepository.addBook(payLoad);
+        const bookId = book._id;
+        const flagResolut = await libraryRepository.addBook(bookId, authorId);
 
         if (!flagResolut) {
             return res.status(400).json({
                 message: 'Ошибка при попытке добавить книгу в библиотеку'
             });
         }
-        return res.status(200).sendStatus(200);
+
+        return res.status(200).json({ message: 'Успешно' });
     }
 
     /**
@@ -111,19 +117,26 @@ class BookService {
                 .json({ message: 'Ошибка входных данных', errors });
         }
         const { bookId } = req.body;
-        const book = await booksDB.deleteBook(bookId);
-        if (!book) {
+        const isDeleteInBooks = await booksRepository.deleteBook(bookId);
+        if (!isDeleteInBooks) {
             return res.status(400).json({
-                message: 'Не удалось удалить книгу из репозитория книг'
+                message: 'Не удалось удалить книгу из бд книг'
             });
         }
-        const authorId = book.getAuthorID();
-        const flag = await libraryDB.deleteBy2ID(bookId, authorId);
-        if (!flag) {
-            res.status(400).json({
-                message: 'Не удалось удалить книгу из библиотеки'
-            });
+
+        const isDeleteInLib = await libraryRepository.deleteBookById(bookId);
+        if (!isDeleteInLib) {
+            return res
+                .status(400)
+                .json({ message: 'Не удалось удалить книгу из библиотеки' });
         }
+        // const authorId = book.getAuthorID();
+        // const flag = await libraryDB.deleteBy2ID(bookId, authorId);
+        // if (!flag) {
+        //     res.status(400).json({
+        //         message: 'Не удалось удалить книгу из библиотеки'
+        //     });
+        // }
         res.status(200).json({ message: 'Успешно' });
     }
 }

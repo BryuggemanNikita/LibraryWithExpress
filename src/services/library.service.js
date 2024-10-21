@@ -1,5 +1,4 @@
-import { libraryDB } from '../localDataBase/library.db.js';
-import { libraryFilter } from '../filtersForDataBases/libraryFilter.js';
+import { libraryRepository } from '../repositories/libraryRepository.js';
 
 /**
  * Сервер взаимодействия с Library
@@ -12,14 +11,13 @@ class LibraryService {
      * @returns Map() - библиотека Бд
      */
     async getAll (req, res) {
-        const library = await libraryDB.getLibrary();
-        const libraryObject = Object.fromEntries(library);
-        if (library.size == 0) {
+        const library = await libraryRepository.getLibrary();
+        if (!library.length) {
             return res
                 .status(404)
                 .json({ message: 'Библиотека отсутствует', library });
         }
-        res.status(200).json({ message: 'Успешно', libraryObject });
+        res.status(200).json({ message: 'Успешно', library });
     }
 
     /**
@@ -28,8 +26,10 @@ class LibraryService {
      */
     async getByID (req, res) {
         const { id } = req.body;
-        const authorLib = await libraryFilter.getById(id);
-        if (!authorLib) {
+
+        const authorLib = await libraryRepository.getAuthorLibraryById(id);
+
+        if (!authorLib.length) {
             return res
                 .status(400)
                 .json({ message: 'Автор не найден', authorLib: [] });
