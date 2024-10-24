@@ -1,11 +1,11 @@
-import express from 'express';
-import env from 'dotenv';
+import { authorEndpoint } from './endpoints/author.endpoint.js';
+import { libraryEndoint } from './endpoints/library.endpoint.js';
+import { genreEndpoint } from './endpoints/genres.endpoint.js';
 import { authEndpoint } from './endpoints/auth.endpoint.js';
 import { userEndpoint } from './endpoints/user.endpoint.js';
-import { authorEndpoint } from './endpoints/author.endpoint.js';
 import { bookEndpoint } from './endpoints/book.endpoint.js';
-import { genreEndpoint } from './endpoints/genres.endpoint.js';
-import { libraryEndoint } from './endpoints/library.endpoint.js';
+import express from 'express';
+import env from 'dotenv';
 
 const app = express();
 env.config();

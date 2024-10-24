@@ -1,9 +1,9 @@
+import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
+import { usersRepository } from '../repositories/usersRepository.js';
+import { handlingErrors } from '../exception/exceptionValidator.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import env from 'dotenv';
-import { validationResult } from 'express-validator';
-import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
-import { usersRepository } from '../repositories/usersRepository.js';
 
 env.config();
 
@@ -20,46 +20,45 @@ class AuthService {
      */
     async registration (req, res) {
         // обработка ошибок
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            res.status(400).json({ message: 'Ошибка при регистрации', errors });
-            return;
-        }
+        await handlingErrors.errorsHendlingForValidator(
+            req,
+            res,
+            'Ошибка при регистрации'
+        );
 
         const { name, email, password } = req.body;
 
         // проверка name
         const isOnlyWordsInName = IsOnlyWords(name);
-        if (!isOnlyWordsInName) {
-            return res
-                .status(400)
-                .json({ messgae: 'В имени должны быть только буквы' });
-        }
+        await handlingErrors.responseError(
+            !isOnlyWordsInName,
+            400,
+            'В имени должны быть только буквы',
+            res
+        );
 
         // проверка на совпадения в бд
         let user = await usersRepository.getByName(name);
-        if (user) {
-            return res.status(400).json({
-                message: 'Пользователь с таким именем уже существует'
-            });
-        }
+        await handlingErrors.responseError(
+            user,
+            400,
+            'Пользователь с таким именем уже существует',
+            res
+        );
+
         user = await usersRepository.getByEmail(email);
-        if (user) {
-            return res.status(400).json({
-                message: 'Пользователь с такой почтой уже существует'
-            });
-        }
+        await handlingErrors.responseError(
+            user,
+            400,
+            'Пользователь с такой почтой уже существует',
+            res
+        );
 
         const hashPassword = bcrypt.hashSync(password, 7);
 
         user = await usersRepository.addUser({ name, email, hashPassword });
+        await handlingErrors.responseError(!user, 400, 'Косяк', res);
 
-        console.log(user);
-
-        if (!user) {
-            res.status(400).json({ message: 'Косяк' });
-            return;
-        }
         return res.status(200).json({ message: 'Успешно' });
     }
 
@@ -68,13 +67,12 @@ class AuthService {
      * @returns сгенерированный токен пользователя
      */
     async login (req, res) {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            res.status(400).json({
-                message: 'Ошибка при поптыке войти',
-                errors
-            });
-        }
+        await handlingErrors.errorsHendlingForValidator(
+            req,
+            res,
+            'Ошибка при поптыке войти'
+        );
+
         const { name, email, password } = req.body;
         let user;
 
@@ -85,9 +83,12 @@ class AuthService {
             user = await usersRepository.getByName(name);
         }
 
-        if (!user) {
-            return res.status(400).json({ message: 'Пользователь не найден' });
-        }
+        await handlingErrors.responseError(
+            !user,
+            400,
+            'Пользователь не найден',
+            res
+        );
 
         const hashUserPassword = user.password;
         const isTruePassword = bcrypt.compareSync(
@@ -95,9 +96,12 @@ class AuthService {
             hashUserPassword
         );
 
-        if (!isTruePassword) {
-            return res.status(400).json({ message: 'Пароль указан неверно' });
-        }
+        await handlingErrors.responseError(
+            !isTruePassword,
+            400,
+            'Пароль указан неверно',
+            res
+        );
 
         // Генирация токена доступа
         const userId = user._id;
@@ -118,7 +122,7 @@ class AuthService {
     static async #generateAccessToken (userId, roles) {
         const payload = { userId, roles };
         const secretWord = process.env.SECRET;
-        return jwt.sign(payload, secretWord, { expiresIn: '3h' });
+        return jwt.sign(payload, secretWord, { expiresIn: '24h' });
     }
 
     /**
@@ -126,12 +130,14 @@ class AuthService {
      */
     async getAllUsers (req, res) {
         const users = await usersRepository.getUsers();
+        await handlingErrors.responseError(
+            !users,
+            404,
+            'Ошибка запроса к репозиторию',
+            res
+        );
 
-        if (!users.length) {
-            res.status(404).json({ massge: 'Пользователей нет', users });
-            return;
-        }
-        return res.status(200).send(users);
+        return res.status(200).send({ message: 'Успешно', users });
     }
 }
 

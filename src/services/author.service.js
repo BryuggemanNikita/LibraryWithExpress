@@ -1,5 +1,6 @@
-import { authorsRepository } from '../repositories/authorsRepository.js';
+import { handlingErrors } from '../exception/exceptionValidator.js';
 import { validationResult } from 'express-validator';
+import { authorsRepository } from '../repositories/usersRepository.js';
 
 /**
  * Сервер взаимодействия с authors
@@ -14,11 +15,13 @@ class AuthorService {
      */
     async getAllAuthors (req, res) {
         const authors = await authorsRepository.getAuthors();
-        if (!authors.length) {
-            return res
-                .status(404)
-                .json({ messgae: 'Авторы не найдены', authors });
-        }
+        await handlingErrors.responseError(
+            !authors,
+            400,
+            'Ошибка запроса к репозиторию авторов',
+            res
+        );
+
         return res.status(200).json({ message: 'Успешно', authors });
     }
 
@@ -28,15 +31,22 @@ class AuthorService {
      */
     async getAuthorByID (req, res) {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'Ошибка поиска', errors });
-        }
+        await handlingErrors.errorsHendlingForValidator(
+            errors,
+            'Ошибка запроса',
+            res
+        );
+
         const { id } = req.body;
 
-        let author = await authorsRepository.getByID(id);
-        if (!author) {
-            return res.status(404).json({ message: 'Автор не найден' });
-        }
+        let author = await authorsRepository.getById(id);
+        await handlingErrors.responseError(
+            !author,
+            404,
+            'Автор не найден',
+            res
+        );
+
         return res.status(200).json({ message: 'Успешно', author });
     }
 
@@ -46,18 +56,22 @@ class AuthorService {
      */
     async getAuthorsByRegExp (req, res) {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'Ошибка поиска', errors });
-        }
-        const { findName } = req.body;
-        const authors = await authorsRepository.getByRegExp(findName);
-        console.log(authors);
+        await handlingErrors.errorsHendlingForValidator(
+            errors,
+            'Ошибка поиска',
+            res
+        );
 
-        if (!authors.length) {
-            return res
-                .status(404)
-                .json({ message: 'Авторы не найдены', authors });
-        }
+        const { findName } = req.body;
+
+        const authors = await authorsRepository.getByRegular(findName);
+        await handlingErrors.responseError(
+            !authors,
+            400,
+            'Ошибка запроса к репозиторию авторов',
+            res
+        );
+
         return res.status(200).json({ message: 'Успешно', authors });
     }
 }

@@ -1,6 +1,10 @@
 import Datastore from 'nedb';
+import bcrypt from 'bcrypt';
 import { Role } from '../enums/role.enum.js';
-import bcrypt from 'bcrypt'
+
+const usersDataBase = new Datastore({
+    filename: '../dataBases/users'
+});
 
 /**
  * Репозиторий пользователей библиотеки
@@ -12,18 +16,15 @@ import bcrypt from 'bcrypt'
 class UsersRepository {
     #usersDataBase;
 
-    constructor () {
-        const usersDataBase = new Datastore({
-            filename: '../dataBases/users'
-        });
+    constructor (usersDataBase) {
         usersDataBase.loadDatabase();
         this.#usersDataBase = usersDataBase;
-        
+
         this.getByName('admin').then(res => {
             if (!res) {
                 const hashAdminPassword = bcrypt.hashSync('LibraryAdmin', 10);
                 const adminRole = Role.ADMIN;
-    
+
                 this.#usersDataBase.insert({
                     name: 'admin',
                     email: 'admin@admin.ru',
@@ -31,7 +32,7 @@ class UsersRepository {
                     roles: [adminRole]
                 });
             }
-        })
+        });
     }
 
     /**
@@ -39,7 +40,7 @@ class UsersRepository {
      */
     getUsers () {
         return new Promise(res => {
-            this.#usersDataBase.find({}, (err, docs) => {
+            this.#usersDataBase.find({}, { password: 0 }, (err, docs) => {
                 res(docs);
             });
         });
@@ -52,9 +53,12 @@ class UsersRepository {
      */
     getByEmail (email) {
         return new Promise(res => {
-            this.#usersDataBase.find({ email }, (err, docs) => {
-                res(docs[0]);
-            });
+            this.#usersDataBase.find(
+                { email },
+                (err, docs) => {
+                    res(docs[0]);
+                }
+            );
         });
     }
 
@@ -74,9 +78,12 @@ class UsersRepository {
     getUsersByRegular (findStr) {
         return new Promise(res => {
             const regular = new RegExp(`(${findStr})`);
-            this.#usersDataBase.find({ name: regular }, (err, docs) => {
-                res(docs);
-            });
+            this.#usersDataBase.find(
+                { name: regular },
+                (err, docs) => {
+                    res(docs);
+                }
+            );
         });
     }
 
@@ -87,9 +94,12 @@ class UsersRepository {
      */
     getById (userId) {
         return new Promise(res => {
-            this.#usersDataBase.find({ _id: userId }, (err, docs) => {
-                res(docs[0]);
-            });
+            this.#usersDataBase.find(
+                { _id: userId },
+                (err, docs) => {
+                    res(docs[0]);
+                }
+            );
         });
     }
 
@@ -153,4 +163,52 @@ class UsersRepository {
  * @method addUser(payload) : newUser
  * @method deleteUser(payload) : {flag, message}
  */
-export const usersRepository = new UsersRepository();
+export const usersRepository = new UsersRepository(usersDataBase);
+
+class AuthorsRepository {
+    #usersDataBase;
+    #role = Role.AUTHOR;
+
+    constructor (usersDataBase) {
+        this.#usersDataBase = usersDataBase;
+    }
+
+    getAuthors () {
+        return new Promise(res => {
+            this.#usersDataBase.find(
+                { roles: this.#role },
+                { name: 1, email: 1, _id: 0 },
+                (err, docs) => {
+                    res(docs);
+                }
+            );
+        });
+    }
+
+    getById (authorId) {
+        return new Promise(res => {
+            this.#usersDataBase.find(
+                { roles: this.#role, _id: authorId },
+                { name: 1, email: 1, _id: 0 },
+                (err, docs) => {
+                    res(docs[0]);
+                }
+            );
+        });
+    }
+
+    getByRegular (findStr) {
+        return new Promise(res => {
+            const regular = new RegExp(`(${findStr})`);
+            this.#usersDataBase.find(
+                { name: regular, roles: this.#role },
+                { name: 1, email: 1, _id: 0 },
+                (err, docs) => {
+                    res(docs);
+                }
+            );
+        });
+    }
+}
+
+export const authorsRepository = new AuthorsRepository(usersDataBase);

@@ -1,5 +1,9 @@
 import Datastore from 'nedb';
 
+const booksDataBase = new Datastore({
+    filename: '../dataBases/books'
+});
+
 /**
  * Репозиторий книг в библиотеке
  * @method getBooks () : book[]
@@ -10,10 +14,7 @@ import Datastore from 'nedb';
 class BooksRepository {
     #booksDataBase;
 
-    constructor () {
-        const booksDataBase = new Datastore({
-            filename: '../dataBases/books'
-        });
+    constructor (booksDataBase) {
         booksDataBase.loadDatabase();
         this.#booksDataBase = booksDataBase;
     }
@@ -66,7 +67,7 @@ class BooksRepository {
     getById (bookId) {
         return new Promise(res => {
             this.#booksDataBase.find({ _id: bookId }, (err, docs) => {
-                res(docs);
+                res(docs[0]);
             });
         });
     }
@@ -93,4 +94,4 @@ class BooksRepository {
  * @method addBook(payload) : newBook
  * @method deleteBook(payload) : {flag, message}
  */
-export const booksRepository = new BooksRepository();
+export const booksRepository = new BooksRepository(booksDataBase);

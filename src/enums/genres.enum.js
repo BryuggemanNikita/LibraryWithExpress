@@ -1,14 +1,8 @@
 export const Genres = {
-    1: 'Боевик',
-    2: 'Приключения',
-    3: 'Юмор',
-    4: 'Мистика',
-    5: 'Ужас',
-    6: 'Роман',
-    7: 'action movie',
-    8: 'Adventures',
-    9: 'Humor',
-    10: 'Mystique',
-    11: 'Horror',
-    12: 'Novel'
+    ACTION_MOVIE: 1,
+    ADVANTURES: 2,
+    HUMOR: 3,
+    MYSTIQUE: 4,
+    HORROR: 5,
+    NOVEL: 6
 };

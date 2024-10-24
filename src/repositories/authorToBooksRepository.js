@@ -1,5 +1,9 @@
 import Datastore from 'nedb';
 
+const libraryDataBase = new Datastore({
+    filename: '../dataBases/library'
+});
+
 /**
  * Репозиторий авторов и их книг
  * @method getLibrary() : book[]
@@ -9,13 +13,10 @@ import Datastore from 'nedb';
  * @method deleteBy2ID (bookID, authorID) : boolean
  * @method deleteAuthorLibrary (authorID) : bookId[]
  */
-class LibraryDataBase {
+class AuthorToBooksRepository {
     #libraryDataBase;
 
-    constructor () {
-        const libraryDataBase = new Datastore({
-            filename: '../dataBases/library'
-        });
+    constructor (libraryDataBase) {
         libraryDataBase.loadDatabase();
         this.#libraryDataBase = libraryDataBase;
     }
@@ -51,7 +52,7 @@ class LibraryDataBase {
      * @param {*} authorID - id автора который
      * @returns наличие автора в библиотеке
      */
-    addBook (bookId, authorId) {
+    addBook (authorId, bookId) {
         return new Promise(res => {
             this.#libraryDataBase.insert({ authorId, bookId }, (err, docs) => {
                 res(docs);
@@ -65,26 +66,17 @@ class LibraryDataBase {
      * @param {*} authorID
      * @returns наличие автора в бд --> успешность результата
      */
-    async deleteBookById (bookId) {
+    deleteBookById (bookId) {
         return new Promise(res => {
-            this.#libraryDataBase.remove({ bookId }, (err, docs) => {
-                this.#libraryDataBase.loadDatabase();
-                res(docs);
-            });
+            this.#libraryDataBase.remove(
+                { bookId },
+                { multi: true },
+                (err, docs) => {
+                    res(docs);
+                }
+            );
         });
     }
-
-    // /**
-    //  * Удаляет автора из репозитория
-    //  * @param {*} authorID - id искомого автора
-    //  * @returns массив из id книг, которые нужно удалить из системы
-    //  */
-    // async deleteAuthorLibrary (authorId) {
-    //     const authorLibrary = this.#library.get(authorID);
-    //     const bookIDs = authorLibrary.map(book => (book = book.getId()));
-    //     this.#library.delete(authorID);
-    //     return bookIDs;
-    // }
 }
 
 /**
@@ -96,4 +88,4 @@ class LibraryDataBase {
  * @method deleteBy2ID (bookID, authorID) : boolean
  * @method deleteAuthorLibrary (authorID) : bookId[]
  */
-export const libraryRepository = new LibraryDataBase();
+export const authorToBooksRepository = new AuthorToBooksRepository(libraryDataBase);

@@ -1,4 +1,6 @@
-import { libraryRepository } from '../repositories/libraryRepository.js';
+import { authorToBooksRepository } from '../repositories/authorToBooksRepository.js';
+import { handlingErrors } from '../exception/exceptionValidator.js';
+import { authorsRepository } from '../repositories/usersRepository.js';
 
 /**
  * Сервер взаимодействия с Library
@@ -11,12 +13,14 @@ class LibraryService {
      * @returns Map() - библиотека Бд
      */
     async getAll (req, res) {
-        const library = await libraryRepository.getLibrary();
-        if (!library.length) {
-            return res
-                .status(404)
-                .json({ message: 'Библиотека отсутствует', library });
-        }
+        const library = await authorToBooksRepository.getLibrary();
+        await handlingErrors.responseError(
+            !library,
+            400,
+            'Ошибка запроса к репозиторию автор-ннига',
+            res
+        );
+
         res.status(200).json({ message: 'Успешно', library });
     }
 
@@ -26,14 +30,24 @@ class LibraryService {
      */
     async getByID (req, res) {
         const { id } = req.body;
+        const user = await authorsRepository.getById(id);
+        await handlingErrors.responseError(
+            !user,
+            400,
+            'Пользователь не является автором',
+            res
+        );
+    
+        const authorLib = await authorToBooksRepository.getAuthorLibraryById(
+            id
+        );
+        await handlingErrors.responseError(
+            !authorLib,
+            400,
+            'Ошибка запроса к репозиторию автор-ннига',
+            res
+        );
 
-        const authorLib = await libraryRepository.getAuthorLibraryById(id);
-
-        if (!authorLib.length) {
-            return res
-                .status(400)
-                .json({ message: 'Автор не найден', authorLib: [] });
-        }
         const resolut = {};
         resolut[id] = [...authorLib];
         res.status(200).json({ message: 'Успешно', resolut });

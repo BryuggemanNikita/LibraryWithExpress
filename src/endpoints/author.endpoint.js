@@ -1,6 +1,6 @@
-import express from 'express';
 import { authorService } from '../services/author.service.js';
 import { check } from 'express-validator';
+import express from 'express';
 
 export const authorEndpoint = express.Router();
 

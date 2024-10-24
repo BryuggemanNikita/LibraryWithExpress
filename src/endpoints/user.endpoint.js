@@ -1,7 +1,7 @@
-import express from 'express';
-import { Role } from '../enums/role.enum.js';
 import { roleMiddleware } from '../middleware/auth.middleware.js';
 import { userService } from '../services/user.service.js';
+import { Role } from '../enums/role.enum.js';
+import express from 'express';
 
 export const userEndpoint = express.Router();
 

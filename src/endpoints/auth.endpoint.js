@@ -1,8 +1,8 @@
-import express from 'express';
 import { roleMiddleware } from '../middleware/auth.middleware.js';
 import { authService } from '../services/auth.service.js';
 import { check } from 'express-validator';
 import { Role } from '../enums/role.enum.js';
+import express from 'express';
 
 export const authEndpoint = express.Router();
 
