@@ -1,5 +1,5 @@
+import { ExceptionForHandler } from '../exception/error.js';
 import { usersRepository } from '../repositories/usersRepository.js';
-import { handlingErrors } from '../exception/exceptionValidator.js';
 import { Role } from '../enums/role.enum.js';
 
 /**
@@ -15,12 +15,11 @@ class UserService {
         const { userId, newRoleId } = req.body;
 
         // проверки на значения
-        await handlingErrors.responseError(
-            isNaN(newRoleId),
-            400,
-            'Неверно введена роль',
-            res
-        );
+        if (isNaN(newRoleId))
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Неверно введена роль'
+            });
 
         let newRole;
         for (let key in Role) {
@@ -28,30 +27,27 @@ class UserService {
                 newRole = Role[key];
             }
         }
-        await handlingErrors.responseError(
-            newRole == undefined,
-            400,
-            'роль не определена',
-            res
-        );
+        if (newRole == undefined)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'роль не определена'
+            });
 
         // действия с пользователем
         const user = await usersRepository.getById(userId);
-        await handlingErrors.responseError(
-            !user,
-            400,
-            'Пользователь не найден',
-            res
-        );
+        if (!user)
+            throw new ExceptionForHandler({
+                status: 404,
+                message: 'Пользователь не найден'
+            });
 
         const userRoles = user.roles;
         const isUserHasThisRole = userRoles.includes(newRole);
-        await handlingErrors.responseError(
-            isUserHasThisRole,
-            400,
-            'Пользователь уже имеет днную роль',
-            res
-        );
+        if (isUserHasThisRole)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Пользователь уже имеет днную роль'
+            });
 
         userRoles.push(newRole);
         await usersRepository.updateUserInfoById(userId, { roles: userRoles });

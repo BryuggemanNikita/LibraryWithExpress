@@ -6,7 +6,7 @@ env.config();
 /**
  * Проверка на живость токена
  */
-export const isAuthentificated = async (req, res, next) => {
+export const isAuthentificated = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
 

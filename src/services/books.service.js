@@ -1,9 +1,11 @@
 import { authorToBooksRepository } from '../repositories/authorToBooksRepository.js';
-import { handlingErrors } from '../exception/exceptionValidator.js';
+import { ExceptionForHandler } from '../exception/error.js';
+import { exceptionGenerator } from '../exception/exceptionGenerator.js';
 import { booksRepository } from '../repositories/booksRepository.js';
 import { usersRepository } from '../repositories/usersRepository.js';
-import { Role } from '../enums/role.enum.js';
 import { Genres } from '../enums/genres.enum.js';
+import { Role } from '../enums/role.enum.js';
+
 
 /**
  * Сервер взаимодействия с Books
@@ -20,12 +22,11 @@ class BookService {
      */
     async getAll (req, res) {
         const books = await booksRepository.getBooks();
-        await handlingErrors.responseError(
-            !books,
-            400,
-            'Ошибка запроса к репозиторию книг',
-            res
-        );
+        if (!books)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Ошибка запроса к репозиторию книг'
+            });
 
         res.status(200).json({ message: 'Успешно', books });
     }
@@ -37,7 +38,11 @@ class BookService {
     async getByID (req, res) {
         const { bookId } = req.body;
         const book = await booksRepository.getById(bookId);
-        await handlingErrors.responseError(!book, 404, 'Книга не найдена', res);
+        if (!book)
+            throw new ExceptionForHandler({
+                status: 404,
+                message: 'Книга не найдена'
+            });
 
         return res.status(200).json({ message: 'Успешно', book });
     }
@@ -47,20 +52,15 @@ class BookService {
      * @returns ответ {message, books(payload)}
      */
     async getByRegExp (req, res) {
-        await handlingErrors.errorsHendlingForValidator(
-            req,
-            res,
-            'Ошибка поиска'
-        );
+        exceptionGenerator.testByValidator(req);
 
         const { findName } = req.body;
         const books = await booksRepository.getByRegExp(findName);
-        await handlingErrors.responseError(
-            !books,
-            400,
-            'Ошибка запроса к репозиторию книг',
-            res
-        );
+        if (!books)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Ошибка запроса к репозиторию книг'
+            });
 
         res.status(200).json({ message: 'Успешно', books });
     }
@@ -70,11 +70,7 @@ class BookService {
      * @returns ответ {message}
      */
     async addNew (req, res) {
-        await handlingErrors.errorsHendlingForValidator(
-            req,
-            res,
-            'Ошибка при запросе'
-        );
+        exceptionGenerator.testByValidator(req);
 
         const { name, countPages, genre, authorId } = req.body;
 
@@ -82,29 +78,26 @@ class BookService {
         for (let key in Genres) {
             if (Genres[key] === genre) goodGenre = true;
         }
-        await handlingErrors.responseError(
-            !goodGenre,
-            400,
-            'Жанр отсутствует в системе',
-            res
-        );
+        if (!goodGenre)
+            throw new ExceptionForHandler({
+                status: 404,
+                message: 'Указанный жанр отсутствует в системе'
+            });
 
         // проверка на наличие автора в системе
         const user = await usersRepository.getById(authorId);
-        await handlingErrors.responseError(
-            !user,
-            400,
-            'Пользователя нет в системе',
-            res
-        );
+        if (!user)
+            throw new ExceptionForHandler({
+                status: 404,
+                message: 'Пользователя нет в системе'
+            });
 
         const hasAuthorRole = user.roles.includes(Role.AUTHOR);
-        await handlingErrors.responseError(
-            !hasAuthorRole,
-            400,
-            'Пользователь не является автором',
-            res
-        );
+        if (!hasAuthorRole)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Пользователь не является автором'
+            });
 
         const payLoad = { name, countPages, genre };
         const book = await booksRepository.addBook(payLoad);
@@ -113,12 +106,11 @@ class BookService {
             authorId,
             bookId
         );
-        await handlingErrors.responseError(
-            !flagResolut,
-            400,
-            'Ошибка при попытке добавить книгу в библиотеку',
-            res
-        );
+        if (!flagResolut)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Ошибка при попытке добавить книгу в библиотеку'
+            });
 
         return res.status(200).json({ message: 'Успешно' });
     }
@@ -128,30 +120,25 @@ class BookService {
      * @returns ответ {message}
      */
     async deleteByID (req, res) {
-        await handlingErrors.errorsHendlingForValidator(
-            req,
-            res,
-            'Ошибка входных данных'
-        );
+        exceptionGenerator.testByValidator(req);
+
         const { bookId } = req.body;
 
         const isDeleteInBooks = await booksRepository.deleteBook(bookId);
-        await handlingErrors.responseError(
-            !isDeleteInBooks,
-            400,
-            'Не удалось удалить книгу из бд книг',
-            res
-        );
+        if (!isDeleteInBooks)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Не удалось удалить книгу из бд книг'
+            });
 
         const isDeleteInLib = await authorToBooksRepository.deleteBookById(
             bookId
         );
-        await handlingErrors.responseError(
-            !isDeleteInLib,
-            400,
-            'Не удалось удалить книгу из бд библиотеки',
-            res
-        );
+        if (!isDeleteInLib)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Не удалось удалить книгу из бд библиотеки'
+            });
 
         res.status(200).json({ message: 'Успешно' });
     }

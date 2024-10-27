@@ -27,7 +27,7 @@ class AuthorToBooksRepository {
      */
     getLibrary () {
         return new Promise(res => {
-            this.#libraryDataBase.find({}, (err, docs) => {
+            this.#libraryDataBase.find({}, { _id: 0 }, (err, docs) => {
                 res(docs);
             });
         });
@@ -40,9 +40,13 @@ class AuthorToBooksRepository {
      */
     getAuthorLibraryById (authorId) {
         return new Promise(res => {
-            this.#libraryDataBase.find({ authorId }, (err, docs) => {
-                res(docs);
-            });
+            this.#libraryDataBase.find(
+                { authorId },
+                { authorId: 0, _id: 0 },
+                (err, docs) => {
+                    res(docs);
+                }
+            );
         });
     }
 
@@ -88,4 +92,6 @@ class AuthorToBooksRepository {
  * @method deleteBy2ID (bookID, authorID) : boolean
  * @method deleteAuthorLibrary (authorID) : bookId[]
  */
-export const authorToBooksRepository = new AuthorToBooksRepository(libraryDataBase);
+export const authorToBooksRepository = new AuthorToBooksRepository(
+    libraryDataBase
+);

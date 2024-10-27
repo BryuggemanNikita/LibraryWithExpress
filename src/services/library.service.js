@@ -1,6 +1,7 @@
 import { authorToBooksRepository } from '../repositories/authorToBooksRepository.js';
-import { handlingErrors } from '../exception/exceptionValidator.js';
+import { ExceptionForHandler } from '../exception/error.js';
 import { authorsRepository } from '../repositories/usersRepository.js';
+
 
 /**
  * Сервер взаимодействия с Library
@@ -14,12 +15,11 @@ class LibraryService {
      */
     async getAll (req, res) {
         const library = await authorToBooksRepository.getLibrary();
-        await handlingErrors.responseError(
-            !library,
-            400,
-            'Ошибка запроса к репозиторию автор-ннига',
-            res
-        );
+        if (!library)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Ошибка запроса к репозиторию автор-ннига'
+            });
 
         res.status(200).json({ message: 'Успешно', library });
     }
@@ -30,23 +30,21 @@ class LibraryService {
      */
     async getByID (req, res) {
         const { id } = req.body;
-        const user = await authorsRepository.getById(id);
-        await handlingErrors.responseError(
-            !user,
-            400,
-            'Пользователь не является автором',
-            res
-        );
-    
+        const author = await authorsRepository.getById(id);
+        if (!(author[0]))
+            throw new ExceptionForHandler({
+                status: 404,
+                message: 'Автора с данным id не существует'
+            });
+
         const authorLib = await authorToBooksRepository.getAuthorLibraryById(
             id
         );
-        await handlingErrors.responseError(
-            !authorLib,
-            400,
-            'Ошибка запроса к репозиторию автор-ннига',
-            res
-        );
+        if (!authorLib)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Ошибка запроса к репозиторию автор-ннига'
+            });
 
         const resolut = {};
         resolut[id] = [...authorLib];

@@ -28,7 +28,7 @@ class UsersRepository {
                 this.#usersDataBase.insert({
                     name: 'admin',
                     email: 'admin@admin.ru',
-                    password: hashAdminPassword,
+                    hashPassword: hashAdminPassword,
                     roles: [adminRole]
                 });
             }
@@ -46,6 +46,29 @@ class UsersRepository {
         });
     }
 
+    getAllByRole (findRole) {
+        return new Promise(res => {
+            this.#usersDataBase.find(
+                { roles: findRole },
+                { password: 0, roles: 0, _id: 0 },
+                (err, docs) => {
+                    res(docs);
+                }
+            );
+        });
+    }
+
+    hasByEmailOrName (email, name) {
+        return new Promise(res => {
+            this.#usersDataBase.find(
+                { $or: [{ email }, { name }] },
+                (err, docs) => {
+                    res(docs);
+                }
+            );
+        });
+    }
+
     /**
      * Поиск совпадений среди пользователей по почте
      * @param {*} email - почта пользователя
@@ -53,12 +76,9 @@ class UsersRepository {
      */
     getByEmail (email) {
         return new Promise(res => {
-            this.#usersDataBase.find(
-                { email },
-                (err, docs) => {
-                    res(docs[0]);
-                }
-            );
+            this.#usersDataBase.find({ email }, (err, docs) => {
+                res(docs[0]);
+            });
         });
     }
 
@@ -78,12 +98,9 @@ class UsersRepository {
     getUsersByRegular (findStr) {
         return new Promise(res => {
             const regular = new RegExp(`(${findStr})`);
-            this.#usersDataBase.find(
-                { name: regular },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
+            this.#usersDataBase.find({ name: regular }, (err, docs) => {
+                res(docs);
+            });
         });
     }
 
@@ -94,10 +111,19 @@ class UsersRepository {
      */
     getById (userId) {
         return new Promise(res => {
+            this.#usersDataBase.find({ _id: userId }, (err, docs) => {
+                res(docs[0]);
+            });
+        });
+    }
+
+    getByFilter (payload) {
+        return new Promise(res => {
             this.#usersDataBase.find(
-                { _id: userId },
+                { ...payload },
+                { password: 0 },
                 (err, docs) => {
-                    res(docs[0]);
+                    res(docs);
                 }
             );
         });
@@ -112,14 +138,10 @@ class UsersRepository {
      */
     addUser (payload) {
         return new Promise(res => {
-            const { name, email, hashPassword } = payload;
-            const role = Role.JUST_USER;
             this.#usersDataBase.insert(
                 {
-                    name,
-                    email,
-                    password: hashPassword,
-                    roles: [role]
+                    ...payload,
+                    roles: [Role.JUST_USER]
                 },
                 (err, docs) => {
                     res(docs);
@@ -166,49 +188,26 @@ class UsersRepository {
 export const usersRepository = new UsersRepository(usersDataBase);
 
 class AuthorsRepository {
-    #usersDataBase;
-    #role = Role.AUTHOR;
+    #usersRepository;
 
-    constructor (usersDataBase) {
-        this.#usersDataBase = usersDataBase;
-    }
-
-    getAuthors () {
-        return new Promise(res => {
-            this.#usersDataBase.find(
-                { roles: this.#role },
-                { name: 1, email: 1, _id: 0 },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
-        });
+    constructor (usersRepository) {
+        this.#usersRepository = usersRepository;
     }
 
     getById (authorId) {
-        return new Promise(res => {
-            this.#usersDataBase.find(
-                { roles: this.#role, _id: authorId },
-                { name: 1, email: 1, _id: 0 },
-                (err, docs) => {
-                    res(docs[0]);
-                }
-            );
+        return this.#usersRepository.getByFilter({
+            roles: Role.AUTHOR,
+            _id: authorId
         });
     }
 
     getByRegular (findStr) {
-        return new Promise(res => {
-            const regular = new RegExp(`(${findStr})`);
-            this.#usersDataBase.find(
-                { name: regular, roles: this.#role },
-                { name: 1, email: 1, _id: 0 },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
+        const regular = new RegExp(`(${findStr})`);
+        return this.#usersRepository.getByFilter({
+            roles: Role.AUTHOR,
+            name: regular
         });
     }
 }
 
-export const authorsRepository = new AuthorsRepository(usersDataBase);
+export const authorsRepository = new AuthorsRepository(usersRepository);

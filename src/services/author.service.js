@@ -1,6 +1,7 @@
-import { handlingErrors } from '../exception/exceptionValidator.js';
-import { validationResult } from 'express-validator';
-import { authorsRepository } from '../repositories/usersRepository.js';
+import { authorsRepository, usersRepository } from '../repositories/usersRepository.js';
+import { ExceptionForHandler } from '../exception/error.js';
+import { exceptionGenerator } from '../exception/exceptionGenerator.js';
+import { Role } from '../enums/role.enum.js';
 
 /**
  * Сервер взаимодействия с authors
@@ -14,14 +15,12 @@ class AuthorService {
      * @returns ответ {message, authors(payload)}
      */
     async getAllAuthors (req, res) {
-        const authors = await authorsRepository.getAuthors();
-        await handlingErrors.responseError(
-            !authors,
-            400,
-            'Ошибка запроса к репозиторию авторов',
-            res
-        );
-
+        const authors = await usersRepository.getAllByRole(Role.AUTHOR);
+        if (!authors)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Ошибка запроса к репозиторию авторов'
+            });
         return res.status(200).json({ message: 'Успешно', authors });
     }
 
@@ -30,22 +29,16 @@ class AuthorService {
      * @returns ответ {message, author(payload)}
      */
     async getAuthorByID (req, res) {
-        const errors = validationResult(req);
-        await handlingErrors.errorsHendlingForValidator(
-            errors,
-            'Ошибка запроса',
-            res
-        );
+        exceptionGenerator.testByValidator(req);
 
         const { id } = req.body;
 
         let author = await authorsRepository.getById(id);
-        await handlingErrors.responseError(
-            !author,
-            404,
-            'Автор не найден',
-            res
-        );
+        if (!author[0])
+            throw new ExceptionForHandler({
+                status: 404,
+                message: 'Автора с данным id не существует'
+            });
 
         return res.status(200).json({ message: 'Успешно', author });
     }
@@ -55,22 +48,16 @@ class AuthorService {
      * @returns ответ {status, authors(payload)}
      */
     async getAuthorsByRegExp (req, res) {
-        const errors = validationResult(req);
-        await handlingErrors.errorsHendlingForValidator(
-            errors,
-            'Ошибка поиска',
-            res
-        );
+        exceptionGenerator.testByValidator(req);
 
         const { findName } = req.body;
 
         const authors = await authorsRepository.getByRegular(findName);
-        await handlingErrors.responseError(
-            !authors,
-            400,
-            'Ошибка запроса к репозиторию авторов',
-            res
-        );
+        if (!authors)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Ошибка запроса к репозиторию авторов'
+            });
 
         return res.status(200).json({ message: 'Успешно', authors });
     }

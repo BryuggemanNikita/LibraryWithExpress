@@ -8,5 +8,7 @@ export const userEndpoint = express.Router();
 userEndpoint.get(
     '/changeRole',
     roleMiddleware([Role.ADMIN]),
-    userService.pushNewUserRole
+    (req, res, next) => {
+        userService.pushNewUserRole(req, res).catch(next);
+    }
 );

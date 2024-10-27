@@ -16,7 +16,9 @@ authEndpoint.post(
         ).isLength({ min: 8 }),
         check('email', 'Неверно указана почта').isEmail()
     ],
-    authService.registration
+    (req, res, next) => {
+        authService.registration(req, res).catch(next);
+    }
 );
 
 authEndpoint.post(
@@ -27,11 +29,15 @@ authEndpoint.post(
             'Пароль должен содержать не менее 8 символов'
         ).isLength({ min: 8 })
     ],
-    authService.login
+    (req, res, next) => {
+        authService.login(req, res).catch(next);
+    }
 );
 
 authEndpoint.get(
     '/getUsers',
     roleMiddleware([Role.ADMIN]),
-    authService.getAllUsers
+    (req, res, next) => {
+        authService.getAllUsers(req, res).catch(next);
+    }
 );

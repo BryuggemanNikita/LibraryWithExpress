@@ -1,6 +1,7 @@
-import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
+import { ExceptionForHandler } from '../exception/error.js';
+import { exceptionGenerator } from '../exception/exceptionGenerator.js';
 import { usersRepository } from '../repositories/usersRepository.js';
-import { handlingErrors } from '../exception/exceptionValidator.js';
+import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import env from 'dotenv';
@@ -20,45 +21,41 @@ class AuthService {
      */
     async registration (req, res) {
         // обработка ошибок
-        await handlingErrors.errorsHendlingForValidator(
-            req,
-            res,
-            'Ошибка при регистрации'
-        );
+        exceptionGenerator.testByValidator(req);
 
         const { name, email, password } = req.body;
 
         // проверка name
         const isOnlyWordsInName = IsOnlyWords(name);
-        await handlingErrors.responseError(
-            !isOnlyWordsInName,
-            400,
-            'В имени должны быть только буквы',
-            res
-        );
+        if (!isOnlyWordsInName)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'В имени должны быть только буквы'
+            });
 
         // проверка на совпадения в бд
-        let user = await usersRepository.getByName(name);
-        await handlingErrors.responseError(
-            user,
-            400,
-            'Пользователь с таким именем уже существует',
-            res
-        );
+        const users = await usersRepository.hasByEmailOrName(email, name);
+        let user = users[0];
 
-        user = await usersRepository.getByEmail(email);
-        await handlingErrors.responseError(
-            user,
-            400,
-            'Пользователь с такой почтой уже существует',
-            res
-        );
+        if (user) {
+            const message =
+                user.name == name
+                    ? 'Пользователь с таким именем уже существует'
+                    : 'Пользователь с такой почтой уже существует';
+            throw new ExceptionForHandler({
+                status: 400,
+                message
+            });
+        }
 
         const hashPassword = bcrypt.hashSync(password, 7);
 
         user = await usersRepository.addUser({ name, email, hashPassword });
-        await handlingErrors.responseError(!user, 400, 'Косяк', res);
-
+        if (!user)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Не удалось добавить пользователя'
+            });
         return res.status(200).json({ message: 'Успешно' });
     }
 
@@ -67,41 +64,32 @@ class AuthService {
      * @returns сгенерированный токен пользователя
      */
     async login (req, res) {
-        await handlingErrors.errorsHendlingForValidator(
-            req,
-            res,
-            'Ошибка при поптыке войти'
-        );
-
-        const { name, email, password } = req.body;
-        let user;
+        exceptionGenerator.testByValidator(req);
 
         // Поиск пользователя по почте или имени
-        if (!name) {
-            user = await usersRepository.getByEmail(email);
-        } else {
-            user = await usersRepository.getByName(name);
+        const { login, password } = req.body;
+       
+        let user = await usersRepository.getByEmail(login);
+        if (!user) {
+            user = await usersRepository.getByName(login);
         }
 
-        await handlingErrors.responseError(
-            !user,
-            400,
-            'Пользователь не найден',
-            res
-        );
+        if (!user)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Пользователь не найден'
+            });
 
-        const hashUserPassword = user.password;
+        const hashUserPassword = user.hashPassword;       
         const isTruePassword = bcrypt.compareSync(
             String(password),
             hashUserPassword
         );
-
-        await handlingErrors.responseError(
-            !isTruePassword,
-            400,
-            'Пароль указан неверно',
-            res
-        );
+        if (!isTruePassword)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Пароль указан неверно'
+            });
 
         // Генирация токена доступа
         const userId = user._id;
@@ -130,13 +118,11 @@ class AuthService {
      */
     async getAllUsers (req, res) {
         const users = await usersRepository.getUsers();
-        await handlingErrors.responseError(
-            !users,
-            404,
-            'Ошибка запроса к репозиторию',
-            res
-        );
-
+        if (!users)
+            throw new ExceptionForHandler({
+                status: 400,
+                message: 'Ошибка запроса к репозиторию'
+            });
         return res.status(200).send({ message: 'Успешно', users });
     }
 }

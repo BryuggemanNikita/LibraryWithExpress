@@ -1,3 +1,4 @@
+import { excaptionHandler } from './exception/exceptionHandler.js';
 import { authorEndpoint } from './endpoints/author.endpoint.js';
 import { libraryEndoint } from './endpoints/library.endpoint.js';
 import { genreEndpoint } from './endpoints/genres.endpoint.js';
@@ -21,6 +22,8 @@ app.use('/authors', authorEndpoint);
 app.use('/books', bookEndpoint);
 app.use('/genres', genreEndpoint);
 app.use('/library', libraryEndoint);
+
+app.use(excaptionHandler);
 
 app.listen(process.env.PORT, () => {
     console.log(`Server init in port ${process.env.PORT}`);

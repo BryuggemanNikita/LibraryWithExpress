@@ -3,6 +3,10 @@ import express from 'express';
 
 export const libraryEndoint = express.Router();
 
-libraryEndoint.get('/getAll', libraryService.getAll);
+libraryEndoint.get('/getAll', (req, res, next) => {
+    libraryService.getAll(req, res).catch(next);
+});
 
-libraryEndoint.get('/getByAuthorID', libraryService.getByID);
+libraryEndoint.get('/getByAuthorID', (req, res, next) => {
+    libraryService.getByID(req, res).catch(next);
+});

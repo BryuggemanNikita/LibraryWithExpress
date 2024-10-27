@@ -1,3 +1,4 @@
 dataBases
-.env
 frontend
+errors/error.log
+.env
