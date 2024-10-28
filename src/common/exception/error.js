@@ -1,3 +1,7 @@
+/**
+ * Кастомный клас, наследник Error, ...
+ * для рассширенной реализации выброса исключений с нужными параметрами
+ */
 export class ExceptionForHandler extends Error {
     status;
     errors;

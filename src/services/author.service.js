@@ -5,9 +5,10 @@ import { Role } from '../enums/role.enum.js';
 
 /**
  * Сервер взаимодействия с authors
- * @method getAllAuthors (req, res) : {message, authors}
- * @method getAuthorByID (req, res) : {message, author}
- * @method getAuthorsByRegExp (req, res) : {message, author}
+ * все методы являются асинхронными
+ * @method getAllAuthors (req, res) : {message, authors:user[]} | ExceptionForHandler
+ * @method getAuthorByID (req, res) : {message, author} | ExceptionForHandler
+ * @method getAuthorsByRegExp (req, res) : {message, author} | ExceptionForHandler
  */
 class AuthorService {
     /**
@@ -64,9 +65,10 @@ class AuthorService {
 }
 
 /**
- * Экземпляр класса
- * @method getAllAuthors (req, res) : {message, authors}
- * @method getAuthorByID (req, res) : {message, author}
- * @method getAuthorsByRegExp (req, res) : {message, author}
+ * Экзмепляр класса
+ * все методы являются асинхронными
+ * @method getAllAuthors (req, res) : {message, authors:user[]} | ExceptionForHandler
+ * @method getAuthorByID (req, res) : {message, author} | ExceptionForHandler
+ * @method getAuthorsByRegExp (req, res) : {message, author} | ExceptionForHandler
  */
 export const authorService = new AuthorService();

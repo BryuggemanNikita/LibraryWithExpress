@@ -1,3 +1,8 @@
+/**
+ * Проверка строки на наличие только букв
+ * @param {*} str - проверяемая строка
+ * @returns boolean
+ */
 export const isOnlyWords = str => {
     for (const char of str) {
         const lower = char.toLowerCase();

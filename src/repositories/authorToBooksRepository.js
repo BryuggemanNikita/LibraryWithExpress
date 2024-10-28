@@ -7,11 +7,9 @@ const libraryDataBase = new Datastore({
 /**
  * Репозиторий авторов и их книг
  * @method getLibrary() : book[]
- * @ реализовать payload library
- * @method addNewAuthorInLibrary (authorID) :
+ * @method getAuthorLibraryById (authorID) : bookId[]
  * @method addBook (book, authorID) : boolean
- * @method deleteBy2ID (bookID, authorID) : boolean
- * @method deleteAuthorLibrary (authorID) : bookId[]
+ * @method deleteBookById (bookId) : boolean
  */
 class AuthorToBooksRepository {
     #libraryDataBase;
@@ -22,7 +20,7 @@ class AuthorToBooksRepository {
     }
 
     /**
-     * Полное содержание библиотеки [авторId -> книгаId]
+     * Полное содержание библиотеки
      * @returns Библиотеку
      */
     getLibrary () {
@@ -86,11 +84,9 @@ class AuthorToBooksRepository {
 /**
  * Репозиторий авторов и их книг
  * @method getLibrary() : book[]
- * @ реализовать payload library
- * @method addNewAuthorInLibrary (authorID) :
+ * @method getAuthorLibraryById (authorID) : bookId[]
  * @method addBook (book, authorID) : boolean
- * @method deleteBy2ID (bookID, authorID) : boolean
- * @method deleteAuthorLibrary (authorID) : bookId[]
+ * @method deleteBookById (bookId) : boolean
  */
 export const authorToBooksRepository = new AuthorToBooksRepository(
     libraryDataBase

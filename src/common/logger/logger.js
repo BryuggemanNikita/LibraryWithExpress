@@ -1,6 +1,14 @@
 import fs from 'fs';
 
+/**
+ * Класс для реализации логирования, в частности ошибков
+ */
 export class Logger {
+    /**
+     * Статический метод класса для логирования ошибок
+     * @param {*} err - ошибка
+     * @param {*} dir_error - название файла с логами
+     */
     static async loging (err, dir_error = 'error.log') {
         const options = {
             year: 'numeric',

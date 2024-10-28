@@ -9,12 +9,15 @@ import { Genres } from '../enums/genres.enum.js';
 import { Role } from '../enums/role.enum.js';
 
 /**
- * Сервер взаимодействия с Books
- * @method getAll : {message, book[]}
- * @method getByID : {message, book(payload) | undefined}
- * @method getByRegExp : {message, book(payload) | undefined}
- * @method addNew : {message}
- * @method deleteByID : {message}
+ * Сервис взаимодействия с Books
+ * все методы являются асинхронными
+ * @method getAll : {message, book[]} | ExceptionForHandler
+ * @method getByID : {message, book} | ExceptionForHandler
+ * @method getByRegExp : {message, book[]} | ExceptionForHandler
+ * @method getBooksByFilter : {message, book[]} | ExceptionForHandler
+ * @method addNew : {message} | ExceptionForHandler
+ * @method deleteByID : {message} | ExceptionForHandler
+ * @method updateBookInfo : {message} | ExceptionForHandler
  */
 class BookService {
     /**
@@ -199,11 +202,14 @@ class BookService {
 }
 
 /**
- * Экземпляр класса
- * @method getAll : {message, book[]}
- * @method getByID : {message, book(payload) | undefined}
- * @method getByRegExp : {message, book(payload) | undefined}
- * @method addNew : {message}
- * @method deleteByID : {message}
+ * Экземпляр класса BookService
+ * все методы являются асинхронными
+ * @method getAll : {message, book[]} | ExceptionForHandler
+ * @method getByID : {message, book} | ExceptionForHandler
+ * @method getByRegExp : {message, book[]} | ExceptionForHandler
+ * @method getBooksByFilter : {message, book[]} | ExceptionForHandler
+ * @method addNew : {message} | ExceptionForHandler
+ * @method deleteByID : {message} | ExceptionForHandler
+ * @method updateBookInfo : {message} | ExceptionForHandler
  */
 export const bookService = new BookService();

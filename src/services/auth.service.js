@@ -9,10 +9,12 @@ import env from 'dotenv';
 env.config();
 
 /**
- * Сервер взаимодействия с authorization
- * @method registration : {message}
- * @method login : {token}
- * @method #generateAccessToken : accessToken
+ * Сервис взаимодействия с authorization
+ * все методы являются асинхронными, кроме #generateAccessToken
+ * @method registration : {message} | ExceptionForHandler
+ * @method login : {token} | ExceptionForHandler
+ * @method #generateAccessToken : accessToken | ExceptionForHandler
+ * @method getAllUsers : {message, users:user[]} | ExceptionForHandler
  */
 class AuthService {
     /**
@@ -36,7 +38,6 @@ class AuthService {
         // проверка на совпадения в бд
         const users = await usersRepository.getByEmailOrName(email, name);
         let user = users[0];
-
         if (user) {
             const message =
                 user.name == name
@@ -49,7 +50,6 @@ class AuthService {
         }
 
         const hashPassword = bcrypt.hashSync(password, 7);
-
         user = await usersRepository.addUser({ name, email, hashPassword });
         if (!user)
             throw new ExceptionForHandler({
@@ -127,8 +127,10 @@ class AuthService {
 
 /**
  * Экземпляр класса
- * @method registration : response
- * @method login : response.json(token)
- * @method #generateAccessToken : accessToken
+ * все методы являются асинхронными, кроме #generateAccessToken
+ * @method registration : {message} | ExceptionForHandler
+ * @method login : {token} | ExceptionForHandler
+ * @method #generateAccessToken : accessToken | ExceptionForHandler
+ * @method getAllUsers : {message, users:user[]} | ExceptionForHandler
  */
 export const authService = new AuthService();

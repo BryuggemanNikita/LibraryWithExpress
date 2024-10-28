@@ -4,7 +4,7 @@ import { authorsRepository } from '../repositories/usersRepository.js';
 
 
 /**
- * Сервер взаимодействия с Library
+ * Сервис взаимодействия с Library
  * @method getAll (req, res) : {message, library:Map}
  * @method getByID (req, res) : {message, authorLib[]}
  */

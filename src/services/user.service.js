@@ -4,7 +4,7 @@ import { valueInObject } from '../common/anyFunction/valueInObject.js';
 import { Role } from '../enums/role.enum.js';
 
 /**
- * Сервер взаимодействия с user
+ * Сервис взаимодействия с user
  * @method pushNewUserRole : {message}
  */
 class UserService {

@@ -7,8 +7,11 @@ const booksDataBase = new Datastore({
 /**
  * Репозиторий книг в библиотеке
  * @method getBooks () : book[]
- * @method getBooksPayload () : bookPayload[]
+ * @method getBooksByFilter (payload) : book[]
+ * @method getById (bookId) : book
+ * @method getByRegExp (name) : book[]
  * @method addBook (payload) : newBook
+ * @method updateBookInfo (bookId, payload) : boolean
  * @method deleteBook (payload) : {flag, message}
  */
 class BooksRepository {
@@ -20,7 +23,8 @@ class BooksRepository {
     }
 
     /**
-     * @returns копию массива из объектов класса Book в DB
+     * Возвращает все книги
+     * @returns все книги из бд
      */
     getBooks () {
         return new Promise(res => {
@@ -30,6 +34,11 @@ class BooksRepository {
         });
     }
 
+    /**
+     * Поиск книг в бд по фильтру
+     * @param {*} payload - (name?, genre?, countPages?)
+     * @returns книги по фильтру
+     */
     getBooksByFilter (payload) {
         return new Promise(res => {
             this.#booksDataBase.find({ ...payload }, (err, docs) => {
@@ -41,7 +50,7 @@ class BooksRepository {
     /**
      * Поиск книги в бд по заданному id
      * @param {*} bookId - id искомой книги
-     * @returns экземпляр класса Book
+     * @returns объект книги
      */
     getById (bookId) {
         return new Promise(res => {
@@ -54,7 +63,7 @@ class BooksRepository {
     /**
      * Поиск книг по совпадениям в названии | подстроке
      * @param {*} findName - искомое название | подстрока
-     * @returns массив авторов(payload)
+     * @returns массив книг по совпадению
      */
     getByRegExp (name) {
         return new Promise(res => {
@@ -66,7 +75,7 @@ class BooksRepository {
     }
 
     /**
-     * Создает и добавляет книгу в DB
+     * Создает и добавляет книгу в бд
      * @param {*} payload.name - название книги
      * @param {*} payload.countPages - количесвто страниц
      * @param {*} payload.genre - жанр книги
@@ -80,6 +89,12 @@ class BooksRepository {
         });
     }
 
+    /**
+     * Обновление информации о книге
+     * @param {*} bookId - id книги
+     * @param {*} payload - параметры которые можно обновить (name?, genre?, countPages?)
+     * @returns
+     */
     updateBookInfo (bookId, payload) {
         return new Promise(res => {
             this.#booksDataBase.update(
@@ -95,7 +110,7 @@ class BooksRepository {
     }
 
     /**
-     * Удаляет книгу из DB
+     * Удаляет книгу из бд
      * @param {*} bookId id книги
      * @returns результат операции : book | undefined
      */
@@ -111,9 +126,12 @@ class BooksRepository {
 
 /**
  * Репозиторий книг в библиотеке
- * @method getBooks() : book[]
- * @method getBooksPayload() : bookPayload[]
- * @method addBook(payload) : newBook
- * @method deleteBook(payload) : {flag, message}
+ * @method getBooks () : book[]
+ * @method getBooksByFilter (payload) : book[]
+ * @method getById (bookId) : book
+ * @method getByRegExp (name)
+ * @method addBook (payload) : newBook
+ * @method updateBookInfo (bookId, payload) : boolean
+ * @method deleteBook (payload) : {flag, message}
  */
 export const booksRepository = new BooksRepository(booksDataBase);
