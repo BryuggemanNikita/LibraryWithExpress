@@ -24,6 +24,7 @@ authEndpoint.post(
 authEndpoint.post(
     '/login',
     [
+        check('login', 'Поле login - пустое').notEmpty(),
         check(
             'password',
             'Пароль должен содержать не менее 8 символов'

@@ -30,30 +30,9 @@ class BooksRepository {
         });
     }
 
-    /**
-     * Создает и добавляет книгу в DB
-     * @param {*} payload.name - название книги
-     * @param {*} payload.countPages - количесвто страниц
-     * @param {*} payload.genre - жанр книги
-     * @returns book - объект добавленной книги
-     */
-    addBook (payload) {
+    getBooksByFilter (payload) {
         return new Promise(res => {
-            this.#booksDataBase.insert({ ...payload }, (err, docs) => {
-                res(docs);
-            });
-        });
-    }
-
-    /**
-     * Удаляет книгу из DB
-     * @param {*} bookId id книги
-     * @returns результат операции : book | undefined
-     */
-    deleteBook (bookId) {
-        return new Promise(res => {
-            this.#booksDataBase.remove({ _id: bookId }, (err, docs) => {
-                this.#booksDataBase.loadDatabase();
+            this.#booksDataBase.find({ ...payload }, (err, docs) => {
                 res(docs);
             });
         });
@@ -81,6 +60,49 @@ class BooksRepository {
         return new Promise(res => {
             const regular = new RegExp(`(${name})`);
             this.#booksDataBase.find({ name: regular }, (err, docs) => {
+                res(docs);
+            });
+        });
+    }
+
+    /**
+     * Создает и добавляет книгу в DB
+     * @param {*} payload.name - название книги
+     * @param {*} payload.countPages - количесвто страниц
+     * @param {*} payload.genre - жанр книги
+     * @returns book - объект добавленной книги
+     */
+    addBook (payload) {
+        return new Promise(res => {
+            this.#booksDataBase.insert({ ...payload }, (err, docs) => {
+                res(docs);
+            });
+        });
+    }
+
+    updateBookInfo (bookId, payload) {
+        return new Promise(res => {
+            this.#booksDataBase.update(
+                { _id: bookId },
+                { $set: { ...payload } },
+                {},
+                (err, docs) => {
+                    this.#booksDataBase.loadDatabase();
+                    res(docs);
+                }
+            );
+        });
+    }
+
+    /**
+     * Удаляет книгу из DB
+     * @param {*} bookId id книги
+     * @returns результат операции : book | undefined
+     */
+    deleteBook (bookId) {
+        return new Promise(res => {
+            this.#booksDataBase.remove({ _id: bookId }, (err, docs) => {
+                this.#booksDataBase.loadDatabase();
                 res(docs);
             });
         });

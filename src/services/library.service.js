@@ -1,5 +1,5 @@
 import { authorToBooksRepository } from '../repositories/authorToBooksRepository.js';
-import { ExceptionForHandler } from '../exception/error.js';
+import { ExceptionForHandler } from '../common/exception/error.js';
 import { authorsRepository } from '../repositories/usersRepository.js';
 
 

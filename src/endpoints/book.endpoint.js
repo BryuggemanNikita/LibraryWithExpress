@@ -10,9 +10,13 @@ bookEndpoint.get('/getAllBooks', (req, res, next) => {
     bookService.getAll(req, res).catch(next);
 });
 
-bookEndpoint.get('/getByID', (req, res, next) => {
-    bookService.getByID(req, res).catch(next);
-});
+bookEndpoint.get(
+    '/getByID',
+    [check('bookId', 'не указан id').notEmpty()],
+    (req, res, next) => {
+        bookService.getByID(req, res).catch(next);
+    }
+);
 
 bookEndpoint.get(
     '/getByReg',
@@ -22,15 +26,17 @@ bookEndpoint.get(
     }
 );
 
+bookEndpoint.get('/getByFilter', (req, res, next) => {
+    bookService.getBooksByFilter(req, res).catch(next);
+});
+
 bookEndpoint.post(
     '/addBook',
     [
         check('name', 'Название книги не должно быть пустым').notEmpty(),
-        check('countPages', 'Вы не указали кол-во страниц').notEmpty(),
         check('genre', 'Вы не указали жанр').notEmpty(),
         check('authorId', 'Вы не указали id автора').notEmpty(),
-        check('genre', 'Такого жанра нет').isLength({ max: 12 }),
-        check('authorId', 'id автора указан неверно').isLength({ min: 0 })
+        check('countPages', 'Кол-во страниц не может быть не целым').isInt()
     ],
     roleMiddleware([Role.ADMIN]),
     (req, res, next) => {
@@ -44,5 +50,13 @@ bookEndpoint.delete(
     roleMiddleware([Role.ADMIN]),
     (req, res, next) => {
         bookService.deleteByID(req, res).catch(next);
+    }
+);
+
+bookEndpoint.put(
+    '/updateBookInfoById',
+    [check('bookId', 'Не указан id книги').notEmpty()],
+    (req, res, next) => {
+        bookService.updateBookInfo(req, res).catch(next);
     }
 );

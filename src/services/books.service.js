@@ -1,11 +1,12 @@
 import { authorToBooksRepository } from '../repositories/authorToBooksRepository.js';
-import { ExceptionForHandler } from '../exception/error.js';
-import { exceptionGenerator } from '../exception/exceptionGenerator.js';
+import { ExceptionForHandler } from '../common/exception/error.js';
+import { exceptionGenerator } from '../common/exception/exceptionGenerator.js';
+import { removeEmptyValue } from '../common/anyFunction/removeEmptyValue.js';
 import { booksRepository } from '../repositories/booksRepository.js';
 import { usersRepository } from '../repositories/usersRepository.js';
+import { valueInObject } from '../common/anyFunction/valueInObject.js';
 import { Genres } from '../enums/genres.enum.js';
 import { Role } from '../enums/role.enum.js';
-
 
 /**
  * Сервер взаимодействия с Books
@@ -18,7 +19,7 @@ import { Role } from '../enums/role.enum.js';
 class BookService {
     /**
      * Поиск всех книг(payload)
-     * @returns ответ {message, books(payload)}
+     * @returns ответ {message, book[]}
      */
     async getAll (req, res) {
         const books = await booksRepository.getBooks();
@@ -33,7 +34,7 @@ class BookService {
 
     /**
      * поиск книги по id
-     * @returns ответ {message, book(payload)}
+     * @returns ответ {message, book}
      */
     async getByID (req, res) {
         const { bookId } = req.body;
@@ -49,7 +50,7 @@ class BookService {
 
     /**
      * Поиск книг по названию
-     * @returns ответ {message, books(payload)}
+     * @returns ответ {message, books[]}
      */
     async getByRegExp (req, res) {
         exceptionGenerator.testByValidator(req);
@@ -66,6 +67,30 @@ class BookService {
     }
 
     /**
+     * Поиск книг по фильтру
+     * @returns ответ {message, books[]}
+     */
+    async getBooksByFilter (req, res) {
+        const { name, genre, countPages } = req.body;
+        const payload = { name, genre, countPages };
+        removeEmptyValue(payload);
+        
+        if (genre) {
+            const isGoodGenre = valueInObject(genre, Genres);
+            if (!isGoodGenre)
+                throw new ExceptionForHandler({
+                    status: 400,
+                    message: 'жанр не определен'
+                });
+        }
+
+        const books = await booksRepository.getBooksByFilter(payload);
+        console.log(books);
+
+        res.status(200).json({ message: 'Успешно', books });
+    }
+
+    /**
      * Создает книгу в репозиотрии библиотеке и книг
      * @returns ответ {message}
      */
@@ -74,14 +99,11 @@ class BookService {
 
         const { name, countPages, genre, authorId } = req.body;
 
-        let goodGenre = false;
-        for (let key in Genres) {
-            if (Genres[key] === genre) goodGenre = true;
-        }
-        if (!goodGenre)
+        const isGoodGenre = valueInObject(genre, Genres);
+        if (!isGoodGenre)
             throw new ExceptionForHandler({
-                status: 404,
-                message: 'Указанный жанр отсутствует в системе'
+                status: 400,
+                message: 'жанр не определен'
             });
 
         // проверка на наличие автора в системе
@@ -142,6 +164,38 @@ class BookService {
 
         res.status(200).json({ message: 'Успешно' });
     }
+
+    /**
+     * Обновление информации о книге
+     * @returns ответ {message}
+     */
+    async updateBookInfo (req, res) {
+        exceptionGenerator.testByValidator(req);
+
+        const { bookId, name, countPages, genre } = req.body;
+        const payLoad = { name, countPages, genre };
+        removeEmptyValue(payLoad);
+
+        if (genre) {
+            const isGoodGenre = valueInObject(genre, Genres);
+            if (!isGoodGenre)
+                throw new ExceptionForHandler({
+                    status: 400,
+                    message: 'жанр не определен'
+                });
+        }
+
+        const book = await booksRepository.getById(bookId);
+        if (!book)
+            throw new ExceptionForHandler({
+                message: 'Книга не найдена',
+                status: 404
+            });
+
+        await booksRepository.updateBookInfo(bookId, payLoad);
+
+        res.status(200).json({ message: 'успешно' });
+    }
 }
 
 /**
@@ -153,20 +207,3 @@ class BookService {
  * @method deleteByID : {message}
  */
 export const bookService = new BookService();
-
-// async updateBookInfoByID (bookID, newName, newCountPages, newGenre) {
-//     const book = await this.getByID(bookID);
-//     if (!book) {
-//         return false;
-//     }
-//     if (newName) {
-//         book.setName(newName);
-//     }
-//     if (newCountPages) {
-//         book.setCountPages(newCountPages);
-//     }
-//     if (newGenre) {
-//         book.setGenre(newGenre);
-//     }
-//     return true;
-// }

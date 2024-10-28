@@ -1,6 +1,6 @@
 import { authorsRepository, usersRepository } from '../repositories/usersRepository.js';
-import { ExceptionForHandler } from '../exception/error.js';
-import { exceptionGenerator } from '../exception/exceptionGenerator.js';
+import { ExceptionForHandler } from '../common/exception/error.js';
+import { exceptionGenerator } from '../common/exception/exceptionGenerator.js';
 import { Role } from '../enums/role.enum.js';
 
 /**

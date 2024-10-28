@@ -18,7 +18,10 @@ authorEndpoint.get(
 
 authorEndpoint.get(
     '/getByReg',
-    [check('findName', 'Имя не должно быть пустым').notEmpty()],
+    [
+        check('findName', 'Подстрока не может быть пустой').notEmpty(),
+        check('findName', 'Запрос только от 3 символов').isLength({ min: 3 })
+    ],
     (req, res, next) => {
         authorService.getAuthorsByRegExp(req, res).catch(next);
     }

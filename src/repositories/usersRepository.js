@@ -58,7 +58,7 @@ class UsersRepository {
         });
     }
 
-    hasByEmailOrName (email, name) {
+    getByEmailOrName (email, name) {
         return new Promise(res => {
             this.#usersDataBase.find(
                 { $or: [{ email }, { name }] },

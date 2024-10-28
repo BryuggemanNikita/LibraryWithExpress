@@ -1,6 +1,6 @@
 import { Logger } from '../logger/logger.js';
 
-export const excaptionHandler = (err, req, res, next) => {
+export const handlerForCustomException = (err, req, res, next) => {
     const { message, errors } = err;
     const status = err.status ? err.status : 500;
 

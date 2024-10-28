@@ -1,5 +1,6 @@
-import { ExceptionForHandler } from '../exception/error.js';
+import { ExceptionForHandler } from '../common/exception/error.js';
 import { usersRepository } from '../repositories/usersRepository.js';
+import { valueInObject } from '../common/anyFunction/valueInObject.js';
 import { Role } from '../enums/role.enum.js';
 
 /**
@@ -12,24 +13,13 @@ class UserService {
      * @returns ответ с результатом
      */
     async pushNewUserRole (req, res) {
-        const { userId, newRoleId } = req.body;
+        const { userId, newRole } = req.body;
 
         // проверки на значения
-        if (isNaN(newRoleId))
+        const isGoodRole = valueInObject(newRole, Role);
+        if (!isGoodRole)
             throw new ExceptionForHandler({
-                status: 400,
-                message: 'Неверно введена роль'
-            });
-
-        let newRole;
-        for (let key in Role) {
-            if (Role[key] === newRoleId) {
-                newRole = Role[key];
-            }
-        }
-        if (newRole == undefined)
-            throw new ExceptionForHandler({
-                status: 400,
+                status: 404,
                 message: 'роль не определена'
             });
 

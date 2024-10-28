@@ -1,7 +1,7 @@
-import { ExceptionForHandler } from '../exception/error.js';
-import { exceptionGenerator } from '../exception/exceptionGenerator.js';
+import { ExceptionForHandler } from '../common/exception/error.js';
+import { exceptionGenerator } from '../common/exception/exceptionGenerator.js';
 import { usersRepository } from '../repositories/usersRepository.js';
-import { IsOnlyWords } from '../stringTests/IsOnlyWords.js';
+import { isOnlyWords } from '../common/stringTests/IsOnlyWords.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import env from 'dotenv';
@@ -26,7 +26,7 @@ class AuthService {
         const { name, email, password } = req.body;
 
         // проверка name
-        const isOnlyWordsInName = IsOnlyWords(name);
+        const isOnlyWordsInName = isOnlyWords(name);
         if (!isOnlyWordsInName)
             throw new ExceptionForHandler({
                 status: 400,
@@ -34,7 +34,7 @@ class AuthService {
             });
 
         // проверка на совпадения в бд
-        const users = await usersRepository.hasByEmailOrName(email, name);
+        const users = await usersRepository.getByEmailOrName(email, name);
         let user = users[0];
 
         if (user) {
@@ -68,11 +68,9 @@ class AuthService {
 
         // Поиск пользователя по почте или имени
         const { login, password } = req.body;
-       
-        let user = await usersRepository.getByEmail(login);
-        if (!user) {
-            user = await usersRepository.getByName(login);
-        }
+
+        const users = await usersRepository.getByEmailOrName(login, login);
+        const user = users[0];
 
         if (!user)
             throw new ExceptionForHandler({
@@ -80,7 +78,7 @@ class AuthService {
                 message: 'Пользователь не найден'
             });
 
-        const hashUserPassword = user.hashPassword;       
+        const hashUserPassword = user.hashPassword;
         const isTruePassword = bcrypt.compareSync(
             String(password),
             hashUserPassword
