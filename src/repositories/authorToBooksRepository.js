@@ -1,8 +1,6 @@
-import Datastore from 'nedb';
+import Datastore from 'nedb-promises';
 
-const libraryDataBase = new Datastore({
-    filename: '../dataBases/library'
-});
+const libraryDataBase = Datastore.create('../dataBases/library');
 
 /**
  * Репозиторий авторов и их книг
@@ -24,11 +22,7 @@ class AuthorToBooksRepository {
      * @returns Библиотеку
      */
     getLibrary () {
-        return new Promise(res => {
-            this.#libraryDataBase.find({}, { _id: 0 }, (err, docs) => {
-                res(docs);
-            });
-        });
+        return this.#libraryDataBase.find({}, { _id: 0 });
     }
 
     /**
@@ -37,15 +31,10 @@ class AuthorToBooksRepository {
      * @returns bookId[]
      */
     getAuthorLibraryById (authorId) {
-        return new Promise(res => {
-            this.#libraryDataBase.find(
-                { authorId },
-                { authorId: 0, _id: 0 },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
-        });
+        return this.#libraryDataBase.find(
+            { authorId },
+            { authorId: 0, _id: 0 }
+        );
     }
 
     /**
@@ -55,11 +44,7 @@ class AuthorToBooksRepository {
      * @returns наличие автора в библиотеке
      */
     addBook (authorId, bookId) {
-        return new Promise(res => {
-            this.#libraryDataBase.insert({ authorId, bookId }, (err, docs) => {
-                res(docs);
-            });
-        });
+        return this.#libraryDataBase.insert({ authorId, bookId });
     }
 
     /**
@@ -69,18 +54,9 @@ class AuthorToBooksRepository {
      * @returns наличие автора в бд --> успешность результата
      */
     deleteBookById (bookId) {
-        return new Promise(res => {
-            this.#libraryDataBase.remove(
-                { bookId },
-                { multi: true },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
-        });
+        return this.#libraryDataBase.remove({ bookId }, { multi: true });
     }
 }
-
 /**
  * Репозиторий авторов и их книг
  * @method getLibrary() : book[]

@@ -1,8 +1,6 @@
-import Datastore from 'nedb';
+import Datastore from 'nedb-promises';
 
-const booksDataBase = new Datastore({
-    filename: '../dataBases/books'
-});
+const booksDataBase = Datastore.create('../dataBases/books');
 
 /**
  * Репозиторий книг в библиотеке
@@ -27,11 +25,7 @@ class BooksRepository {
      * @returns все книги из бд
      */
     getBooks () {
-        return new Promise(res => {
-            this.#booksDataBase.find({}, (err, docs) => {
-                res(docs);
-            });
-        });
+        return this.#booksDataBase.find({});
     }
 
     /**
@@ -40,11 +34,7 @@ class BooksRepository {
      * @returns книги по фильтру
      */
     getBooksByFilter (payload) {
-        return new Promise(res => {
-            this.#booksDataBase.find({ ...payload }, (err, docs) => {
-                res(docs);
-            });
-        });
+        return this.#booksDataBase.find({ ...payload });
     }
 
     /**
@@ -53,11 +43,7 @@ class BooksRepository {
      * @returns объект книги
      */
     getById (bookId) {
-        return new Promise(res => {
-            this.#booksDataBase.find({ _id: bookId }, (err, docs) => {
-                res(docs[0]);
-            });
-        });
+        return this.#booksDataBase.find({ _id: bookId }).then(res => res[0]);
     }
 
     /**
@@ -66,12 +52,8 @@ class BooksRepository {
      * @returns массив книг по совпадению
      */
     getByRegExp (name) {
-        return new Promise(res => {
-            const regular = new RegExp(`(${name})`);
-            this.#booksDataBase.find({ name: regular }, (err, docs) => {
-                res(docs);
-            });
-        });
+        const regular = new RegExp(`(${name})`);
+        return this.#booksDataBase.find({ name: regular });
     }
 
     /**
@@ -82,11 +64,7 @@ class BooksRepository {
      * @returns book - объект добавленной книги
      */
     addBook (payload) {
-        return new Promise(res => {
-            this.#booksDataBase.insert({ ...payload }, (err, docs) => {
-                res(docs);
-            });
-        });
+        return this.#booksDataBase.insert({ ...payload });
     }
 
     /**
@@ -96,17 +74,12 @@ class BooksRepository {
      * @returns
      */
     updateBookInfo (bookId, payload) {
-        return new Promise(res => {
-            this.#booksDataBase.update(
-                { _id: bookId },
-                { $set: { ...payload } },
-                {},
-                (err, docs) => {
-                    this.#booksDataBase.loadDatabase();
-                    res(docs);
-                }
-            );
-        });
+        return this.#booksDataBase
+            .update({ _id: bookId }, { $set: { ...payload } }, {})
+            .then(res => {
+                this.#booksDataBase.loadDatabase();
+                return res;
+            });
     }
 
     /**
@@ -115,11 +88,9 @@ class BooksRepository {
      * @returns результат операции : book | undefined
      */
     deleteBook (bookId) {
-        return new Promise(res => {
-            this.#booksDataBase.remove({ _id: bookId }, (err, docs) => {
-                this.#booksDataBase.loadDatabase();
-                res(docs);
-            });
+        return this.#booksDataBase.remove({ _id: bookId }).then(res => {
+            this.#booksDataBase.loadDatabase();
+            return res;
         });
     }
 }

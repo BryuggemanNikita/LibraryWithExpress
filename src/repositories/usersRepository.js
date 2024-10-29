@@ -1,10 +1,8 @@
-import Datastore from 'nedb';
+import Datastore from 'nedb-promises';
 import bcrypt from 'bcrypt';
 import { Role } from '../enums/role.enum.js';
 
-const usersDataBase = new Datastore({
-    filename: '../dataBases/users'
-});
+const usersDataBase = Datastore.create('../dataBases/users');
 
 /**
  * Репозиторий пользователей библиотеки
@@ -47,11 +45,7 @@ class UsersRepository {
      * @returns массив из пользователей, без пароля
      */
     getUsers () {
-        return new Promise(res => {
-            this.#usersDataBase.find({}, { hashPassword: 0 }, (err, docs) => {
-                res(docs);
-            });
-        });
+        return this.#usersDataBase.find({}, { hashPassword: 0 });
     }
 
     /**
@@ -60,15 +54,10 @@ class UsersRepository {
      * @returns массив из пользователей с заданной ролью
      */
     getAllByRole (findRole) {
-        return new Promise(res => {
-            this.#usersDataBase.find(
-                { roles: findRole },
-                { hashPassword: 0, roles: 0, _id: 0 },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
-        });
+        return this.#usersDataBase.find(
+            { roles: findRole },
+            { hashPassword: 0, roles: 0, _id: 0 }
+        );
     }
 
     /**
@@ -78,14 +67,7 @@ class UsersRepository {
      * @returns массив из совпадений хотя-бы по одному параметру
      */
     getByEmailOrName (email, name) {
-        return new Promise(res => {
-            this.#usersDataBase.find(
-                { $or: [{ email }, { name }] },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
-        });
+        return this.#usersDataBase.find({ $or: [{ email }, { name }] });
     }
 
     /**
@@ -94,15 +76,9 @@ class UsersRepository {
      * @returns объект класса User | undefined
      */
     getByEmail (email) {
-        return new Promise(res => {
-            this.#usersDataBase.find(
-                { email },
-                { hashPassword: 0 },
-                (err, docs) => {
-                    res(docs[0]);
-                }
-            );
-        });
+        return this.#usersDataBase
+            .find({ email }, { hashPassword: 0 })
+            .then(res => res[0]);
     }
 
     /**
@@ -111,15 +87,9 @@ class UsersRepository {
      * @returns объект класса User | undefined
      */
     getByName (name) {
-        return new Promise(res => {
-            this.#usersDataBase.find(
-                { name },
-                { hashPassword: 0 },
-                (err, docs) => {
-                    res(docs[0]);
-                }
-            );
-        });
+        return this.#usersDataBase
+            .find({ name }, { hashPassword: 0 })
+            .then(res => res[0]);
     }
 
     /**
@@ -128,16 +98,8 @@ class UsersRepository {
      * @returns массив из совпадений
      */
     getUsersByRegular (findStr) {
-        return new Promise(res => {
-            const regular = new RegExp(`(${findStr})`);
-            this.#usersDataBase.find(
-                { name: regular },
-                { hashPassword: 0 },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
-        });
+        const regular = new RegExp(`(${findStr})`);
+        return this.#usersDataBase.find({ name: regular }, { hashPassword: 0 });
     }
 
     /**
@@ -146,11 +108,7 @@ class UsersRepository {
      * @returns объект класса User | undefined
      */
     getById (userId) {
-        return new Promise(res => {
-            this.#usersDataBase.find({ _id: userId }, (err, docs) => {
-                res(docs[0]);
-            });
-        });
+        return this.#usersDataBase.find({ _id: userId });
     }
 
     /**
@@ -159,15 +117,7 @@ class UsersRepository {
      * @returns
      */
     getByFilter (payload) {
-        return new Promise(res => {
-            this.#usersDataBase.find(
-                { ...payload },
-                { password: 0 },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
-        });
+        return this.#usersDataBase.find({ ...payload }, { password: 0 });
     }
 
     /**
@@ -178,16 +128,9 @@ class UsersRepository {
      * @returns user - объект добавленного пользователя
      */
     addUser (payload) {
-        return new Promise(res => {
-            this.#usersDataBase.insert(
-                {
-                    ...payload,
-                    roles: [Role.JUST_USER]
-                },
-                (err, docs) => {
-                    res(docs);
-                }
-            );
+        return this.#usersDataBase.insert({
+            ...payload,
+            roles: [Role.JUST_USER]
         });
     }
 
@@ -197,31 +140,21 @@ class UsersRepository {
      * @returns результат операции : user | undefined
      */
     deleteUser (userId) {
-        return new Promise(res => {
-            this.#usersDataBase.remove({ id: userId }, (err, docs) => {
-                res(docs[0]);
-            });
-        });
+        return this.#usersDataBase.remove({ id: userId }).then(res => res[0]);
     }
 
     /**
      * Обновление информации о пользователе в бд
      * @param {*} userId - id пользователя для изменения
      * @param {*} payload - {name?, email?, roles?}
-     * @returns 
+     * @returns
      */
     updateUserInfoById (userId, payload) {
-        return new Promise(res => {
-            this.#usersDataBase.update(
-                { _id: userId },
-                { $set: { ...payload } },
-                {},
-                () => {
-                    this.#usersDataBase.loadDatabase();
-                }
-            );
-            res();
-        });
+        return this.#usersDataBase
+            .update({ _id: userId }, { $set: { ...payload } }, {})
+            .then(() => {
+                this.#usersDataBase.loadDatabase();
+            });
     }
 }
 
