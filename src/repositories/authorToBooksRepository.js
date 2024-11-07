@@ -1,6 +1,10 @@
-import Datastore from 'nedb-promises';
+import { wrapInPromise } from '../common/anyFunction/wrapInPromise.js';
+import Datastore from 'nedb';
 
-const libraryDataBase = Datastore.create('../dataBases/library');
+const libraryDataBase = new Datastore({
+    filename: '../dataBases/library',
+    autoload: true
+});
 
 /**
  * Репозиторий авторов и их книг
@@ -10,11 +14,12 @@ const libraryDataBase = Datastore.create('../dataBases/library');
  * @method deleteBookById (bookId) : boolean
  */
 class AuthorToBooksRepository {
-    #libraryDataBase;
-
     constructor (libraryDataBase) {
         libraryDataBase.loadDatabase();
-        this.#libraryDataBase = libraryDataBase;
+        this.find = wrapInPromise('find', libraryDataBase);
+        this.insert = wrapInPromise('insert', libraryDataBase);
+        this.delete = wrapInPromise('remove', libraryDataBase);
+        this.update = wrapInPromise('update', libraryDataBase);
     }
 
     /**
@@ -22,7 +27,7 @@ class AuthorToBooksRepository {
      * @returns Библиотеку
      */
     getLibrary () {
-        return this.#libraryDataBase.find({}, { _id: 0 });
+        return this.find({}, { _id: 0 });
     }
 
     /**
@@ -31,10 +36,7 @@ class AuthorToBooksRepository {
      * @returns bookId[]
      */
     getAuthorLibraryById (authorId) {
-        return this.#libraryDataBase.find(
-            { authorId },
-            { authorId: 0, _id: 0 }
-        );
+        return this.find({ authorId }, { authorId: 0, _id: 0 });
     }
 
     /**
@@ -44,7 +46,7 @@ class AuthorToBooksRepository {
      * @returns наличие автора в библиотеке
      */
     addBook (authorId, bookId) {
-        return this.#libraryDataBase.insert({ authorId, bookId });
+        return this.insert({ authorId, bookId });
     }
 
     /**
@@ -54,7 +56,7 @@ class AuthorToBooksRepository {
      * @returns наличие автора в бд --> успешность результата
      */
     deleteBookById (bookId) {
-        return this.#libraryDataBase.remove({ bookId }, { multi: true });
+        return this.delete({ bookId }, { multi: true });
     }
 }
 /**

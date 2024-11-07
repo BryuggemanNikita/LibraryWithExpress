@@ -26,6 +26,8 @@ class BookService {
      */
     async getAll (req, res) {
         const books = await booksRepository.getBooks();
+        console.log(books);
+        
         if (!books)
             throw new ExceptionForHandler({
                 status: 400,
@@ -77,7 +79,7 @@ class BookService {
         const { name, genre, countPages } = req.body;
         const payload = { name, genre, countPages };
         removeEmptyValue(payload);
-        
+
         if (genre) {
             const isGoodGenre = valueInObject(genre, Genres);
             if (!isGoodGenre)
@@ -116,7 +118,7 @@ class BookService {
                 status: 404,
                 message: 'Пользователя нет в системе'
             });
-
+            
         const hasAuthorRole = user.roles.includes(Role.AUTHOR);
         if (!hasAuthorRole)
             throw new ExceptionForHandler({

@@ -1,8 +1,12 @@
-import Datastore from 'nedb-promises';
-import bcrypt from 'bcrypt';
+import { wrapInPromise } from '../common/anyFunction/wrapInPromise.js';
 import { Role } from '../enums/role.enum.js';
+import Datastore from 'nedb';
+import bcrypt from 'bcrypt';
 
-const usersDataBase = Datastore.create('../dataBases/users');
+const usersDataBase = new Datastore({
+    filename: '../databases/users',
+    autoload: true
+});
 
 /**
  * Репозиторий пользователей библиотеки
@@ -24,7 +28,10 @@ class UsersRepository {
     constructor (usersDataBase) {
         usersDataBase.loadDatabase();
         this.#usersDataBase = usersDataBase;
-
+        this.find = wrapInPromise('find', usersDataBase);
+        this.insert = wrapInPromise('insert', usersDataBase);
+        this.delete = wrapInPromise('remove', usersDataBase);
+        this.update = wrapInPromise('update', usersDataBase);
         this.getByName('admin').then(res => {
             if (!res) {
                 const hashAdminPassword = bcrypt.hashSync('LibraryAdmin', 10);
@@ -45,7 +52,7 @@ class UsersRepository {
      * @returns массив из пользователей, без пароля
      */
     getUsers () {
-        return this.#usersDataBase.find({}, { hashPassword: 0 });
+        return this.find({}, { hashPassword: 0 });
     }
 
     /**
@@ -54,7 +61,7 @@ class UsersRepository {
      * @returns массив из пользователей с заданной ролью
      */
     getAllByRole (findRole) {
-        return this.#usersDataBase.find(
+        return this.find(
             { roles: findRole },
             { hashPassword: 0, roles: 0, _id: 0 }
         );
@@ -67,7 +74,7 @@ class UsersRepository {
      * @returns массив из совпадений хотя-бы по одному параметру
      */
     getByEmailOrName (email, name) {
-        return this.#usersDataBase.find({ $or: [{ email }, { name }] });
+        return this.find({ $or: [{ email }, { name }] });
     }
 
     /**
@@ -76,9 +83,7 @@ class UsersRepository {
      * @returns объект класса User | undefined
      */
     getByEmail (email) {
-        return this.#usersDataBase
-            .find({ email }, { hashPassword: 0 })
-            .then(res => res[0]);
+        return this.find({ email }, { hashPassword: 0 }).then(res => res[0]);
     }
 
     /**
@@ -87,9 +92,7 @@ class UsersRepository {
      * @returns объект класса User | undefined
      */
     getByName (name) {
-        return this.#usersDataBase
-            .find({ name }, { hashPassword: 0 })
-            .then(res => res[0]);
+        return this.find({ name }, { hashPassword: 0 }).then(res => res[0]);
     }
 
     /**
@@ -99,7 +102,7 @@ class UsersRepository {
      */
     getUsersByRegular (findStr) {
         const regular = new RegExp(`(${findStr})`);
-        return this.#usersDataBase.find({ name: regular }, { hashPassword: 0 });
+        return this.find({ name: regular }, { hashPassword: 0 });
     }
 
     /**
@@ -108,7 +111,7 @@ class UsersRepository {
      * @returns объект класса User | undefined
      */
     getById (userId) {
-        return this.#usersDataBase.find({ _id: userId });
+        return this.find({ _id: userId }).then(res => res[0]);
     }
 
     /**
@@ -117,7 +120,7 @@ class UsersRepository {
      * @returns
      */
     getByFilter (payload) {
-        return this.#usersDataBase.find({ ...payload }, { password: 0 });
+        return this.find({ ...payload }, { password: 0 });
     }
 
     /**
@@ -128,7 +131,7 @@ class UsersRepository {
      * @returns user - объект добавленного пользователя
      */
     addUser (payload) {
-        return this.#usersDataBase.insert({
+        return this.insert({
             ...payload,
             roles: [Role.JUST_USER]
         });
@@ -140,7 +143,7 @@ class UsersRepository {
      * @returns результат операции : user | undefined
      */
     deleteUser (userId) {
-        return this.#usersDataBase.remove({ id: userId }).then(res => res[0]);
+        return this.delete({ id: userId });
     }
 
     /**
@@ -150,11 +153,7 @@ class UsersRepository {
      * @returns
      */
     updateUserInfoById (userId, payload) {
-        return this.#usersDataBase
-            .update({ _id: userId }, { $set: { ...payload } }, {})
-            .then(() => {
-                this.#usersDataBase.loadDatabase();
-            });
+        return this.update({ _id: userId }, { $set: { ...payload } }, {});
     }
 }
 

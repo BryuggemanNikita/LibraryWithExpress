@@ -28,3 +28,4 @@ app.use(handlerForCustomException);
 app.listen(process.env.PORT, () => {
     console.log(`Server init in port ${process.env.PORT}`);
 });
+

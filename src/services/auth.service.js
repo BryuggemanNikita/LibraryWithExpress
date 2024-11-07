@@ -37,6 +37,7 @@ class AuthService {
 
         // проверка на совпадения в бд
         const users = await usersRepository.getByEmailOrName(email, name);
+                
         let user = users[0];
         if (user) {
             const message =
@@ -51,6 +52,7 @@ class AuthService {
 
         const hashPassword = bcrypt.hashSync(password, 7);
         user = await usersRepository.addUser({ name, email, hashPassword });
+
         if (!user)
             throw new ExceptionForHandler({
                 status: 400,

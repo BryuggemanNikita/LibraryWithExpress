@@ -1,6 +1,10 @@
-import Datastore from 'nedb-promises';
+import { wrapInPromise } from '../common/anyFunction/wrapInPromise.js';
+import Datastore from 'nedb';
 
-const booksDataBase = Datastore.create('../dataBases/books');
+const booksDataBase = new Datastore({
+    filename: '../dataBases/books',
+    autoload: true
+});
 
 /**
  * Репозиторий книг в библиотеке
@@ -13,11 +17,22 @@ const booksDataBase = Datastore.create('../dataBases/books');
  * @method deleteBook (payload) : {flag, message}
  */
 class BooksRepository {
-    #booksDataBase;
-
     constructor (booksDataBase) {
         booksDataBase.loadDatabase();
-        this.#booksDataBase = booksDataBase;
+        this.find = wrapInPromise('find', booksDataBase);
+        this.insert = wrapInPromise('insert', booksDataBase);
+        this.delete = wrapInPromise('remove', booksDataBase);
+        this.update = wrapInPromise('update', booksDataBase);
+    }
+
+    /**
+     * Обновление информации о книге
+     * @param {*} bookId - id книги
+     * @param {*} payload - параметры которые можно обновить (name?, genre?, countPages?)
+     * @returns
+     */
+    updateBookInfo (bookId, payload) {
+        return this.update({ _id: bookId }, { $set: { ...payload } });
     }
 
     /**
@@ -25,7 +40,7 @@ class BooksRepository {
      * @returns все книги из бд
      */
     getBooks () {
-        return this.#booksDataBase.find({});
+        return this.find({});
     }
 
     /**
@@ -34,7 +49,7 @@ class BooksRepository {
      * @returns книги по фильтру
      */
     getBooksByFilter (payload) {
-        return this.#booksDataBase.find({ ...payload });
+        return this.find({ ...payload });
     }
 
     /**
@@ -43,7 +58,7 @@ class BooksRepository {
      * @returns объект книги
      */
     getById (bookId) {
-        return this.#booksDataBase.find({ _id: bookId }).then(res => res[0]);
+        return this.find({ _id: bookId }).then(res => res[0]);
     }
 
     /**
@@ -53,7 +68,7 @@ class BooksRepository {
      */
     getByRegExp (name) {
         const regular = new RegExp(`(${name})`);
-        return this.#booksDataBase.find({ name: regular });
+        return this.find({ name: regular });
     }
 
     /**
@@ -64,22 +79,7 @@ class BooksRepository {
      * @returns book - объект добавленной книги
      */
     addBook (payload) {
-        return this.#booksDataBase.insert({ ...payload });
-    }
-
-    /**
-     * Обновление информации о книге
-     * @param {*} bookId - id книги
-     * @param {*} payload - параметры которые можно обновить (name?, genre?, countPages?)
-     * @returns
-     */
-    updateBookInfo (bookId, payload) {
-        return this.#booksDataBase
-            .update({ _id: bookId }, { $set: { ...payload } }, {})
-            .then(res => {
-                this.#booksDataBase.loadDatabase();
-                return res;
-            });
+        return this.insert({ ...payload });
     }
 
     /**
@@ -88,10 +88,7 @@ class BooksRepository {
      * @returns результат операции : book | undefined
      */
     deleteBook (bookId) {
-        return this.#booksDataBase.remove({ _id: bookId }).then(res => {
-            this.#booksDataBase.loadDatabase();
-            return res;
-        });
+        return this.delete({ _id: bookId });
     }
 }
 
