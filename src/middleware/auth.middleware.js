@@ -8,7 +8,7 @@ env.config();
  */
 export const isAuthentificated = (req, res, next) => {
     try {
-        const token = req.headers.authorization.split(' ')[1];
+        const token = req.cookies.accessToken;
 
         if (!token) {
             return res
@@ -22,7 +22,6 @@ export const isAuthentificated = (req, res, next) => {
         req.user = decodedData;
         next();
     } catch (e) {
-        // console.error(e);
         res.status(400).json({ message: 'Пользователь не авторизован' });
     }
 };

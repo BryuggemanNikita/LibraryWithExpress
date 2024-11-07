@@ -37,7 +37,7 @@ class AuthService {
 
         // проверка на совпадения в бд
         const users = await usersRepository.getByEmailOrName(email, name);
-                
+
         let user = users[0];
         if (user) {
             const message =
@@ -98,6 +98,11 @@ class AuthService {
             userId,
             userRoles
         );
+
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true
+        });
+
         res.status(200).json({ accessToken });
     }
 

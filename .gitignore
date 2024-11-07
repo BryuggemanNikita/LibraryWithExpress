@@ -2,3 +2,5 @@ dataBases
 frontend
 errors/error.log
 .env
+client
+node_modules

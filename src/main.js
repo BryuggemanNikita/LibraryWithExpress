@@ -5,12 +5,18 @@ import { genreEndpoint } from './endpoints/genres.endpoint.js';
 import { authEndpoint } from './endpoints/auth.endpoint.js';
 import { userEndpoint } from './endpoints/user.endpoint.js';
 import { bookEndpoint } from './endpoints/book.endpoint.js';
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import env from 'dotenv';
 
 const app = express();
 env.config();
 app.use(express.json());
+
+// middlewares
+app.use(cookieParser());
+app.use(handlerForCustomException);
+
 app.use((req, res, next) => {
     console.log(`request - ${req.method}, url - ${req.url}`);
     next();
@@ -23,9 +29,6 @@ app.use('/books', bookEndpoint);
 app.use('/genres', genreEndpoint);
 app.use('/library', libraryEndoint);
 
-app.use(handlerForCustomException);
-
 app.listen(process.env.PORT, () => {
     console.log(`Server init in port ${process.env.PORT}`);
 });
-
