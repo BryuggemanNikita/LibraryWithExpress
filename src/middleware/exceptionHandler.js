@@ -1,4 +1,4 @@
-import { Logger } from '../logger/logger.js';
+import { Logger } from '../common/logger/logger.js';
 
 export const handlerForCustomException = (err, req, res, next) => {
     const { message, errors } = err;
@@ -8,11 +8,9 @@ export const handlerForCustomException = (err, req, res, next) => {
     console.error(`error: ${message}`);
     console.error(`method - ${req.method}, url - ..${req.url}`);
 
-    if (!errors) {
-        res.status(status).json({ message });
-    } else {
-        res.status(status).json({ message, errors });
-    }
+    const args = !errors ? { message } : { message, errors };
+
+    res.status(status).json({ ...args });
 
     next();
 };
